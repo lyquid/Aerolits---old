@@ -3,7 +3,7 @@
 Game::Game():
   kSCREEN_HEIGHT_(600),
   kSCREEN_WIDTH_(800),
-  running_(true),
+  quit_(false),
   main_window_(nullptr), 
   main_surface_(nullptr) {
 
@@ -14,12 +14,33 @@ Game::~Game() {
   clean();
 }
 
-void Game::handleEvents() {}
+void Game::handleEvents() {
+  while (SDL_PollEvent(&event_)) {
+    switch (event_.type) {
+      case SDL_QUIT:
+        quit_ = true;
+        break;
+      case SDL_KEYDOWN: 
+        handleKeyEvents(event_.key.keysym.sym);
+        break;
+      default:
+        break;
+    }
+  }
+}
+
+void Game::handleKeyEvents(const SDL_Keycode& key) {
+  switch (key) {
+    case SDLK_ESCAPE:
+      quit_ = true;
+      break;
+    default:
+      break;
+  }
+}
 
 void Game::render() {
   SDL_UpdateWindowSurface(main_window_);
-  SDL_Delay(1000);
-  running_ = false;
 }
 
 void Game::update() {
