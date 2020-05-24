@@ -36,7 +36,6 @@ class Game {
   const SDL_Color font_color_;
 
   SDL_Event event_;
-  // SDL_Surface* main_surface_;
   SDL_Renderer* renderer_;
   SDL_Texture* score_;
   SDL_Window* main_window_;

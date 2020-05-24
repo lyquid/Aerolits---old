@@ -88,14 +88,13 @@ void Game::render() {
   SDL_RenderPresent(renderer_);
 }
 
-void Game::update() {
-  // SDL_FillRect(main_surface_, nullptr, SDL_MapRGB(main_surface_->format, 0xFF, 0xFF, 0xFF));
-}
+void Game::update() { }
 
 /* Private methods below */
 
 void Game::clean() {
-  ktp::cleanup(renderer_, main_window_);
+  ktp::cleanup(score_, renderer_, main_window_);
+  TTF_Quit();
 	SDL_Quit();
 }
 
