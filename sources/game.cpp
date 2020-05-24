@@ -36,11 +36,11 @@ void Game::clean() {
 
 void Game::init() {
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-		// error
+		ktp::logSDLError("SDL_Init");
 	} else {
     main_window_ = SDL_CreateWindow("SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, kSCREEN_WIDTH_, kSCREEN_HEIGHT_, SDL_WINDOW_SHOWN);
 		if (main_window_ == nullptr) {
-			// error
+			ktp::logSDLError("SDL_CreateWindow");
 		} else {
 			main_surface_ = SDL_GetWindowSurface(main_window_);
     }
