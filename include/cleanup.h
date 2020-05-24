@@ -47,6 +47,11 @@ template<>inline void cleanup<SDL_Surface>(SDL_Surface* surf){
 	SDL_FreeSurface(surf);
 }
 
+template<>inline void cleanup<TTF_Font>(TTF_Font* font){
+	if (!font) return;
+	TTF_CloseFont(font);
+}
+
 } // namespace ktp
 
 #endif // AEROLITS_INCLUDE_CLEANUP_H_
