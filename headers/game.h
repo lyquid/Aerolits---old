@@ -3,6 +3,7 @@
 
 #include <SDL.h>
 
+#include "../include/cleanup.h"
 #include "../include/log.h"
 
 class Game {

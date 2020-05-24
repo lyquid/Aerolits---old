@@ -29,8 +29,7 @@ void Game::update() {
 /* Private methods below */
 
 void Game::clean() {
-  SDL_FreeSurface(main_surface_);
-	SDL_DestroyWindow(main_window_);
+  ktp::cleanup(main_surface_, main_window_);
 	SDL_Quit();
 }
 
