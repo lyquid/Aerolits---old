@@ -9,12 +9,20 @@ int main(int argc, char *argv[]) {
 
   Game* game = new Game();
 
-  while (!game->quit_) {
-    game->handleEvents();
-    game->update();
-    game->render();
+  if (game->init()) {
+
+    while (!game->quit_) {
+      game->handleEvents();
+      game->update();
+      game->render();
+    }
+    
+    delete game;
+    return 0;
+
+  } else {
+    // something went wrong
+    delete game;
+    return 1;
   }
-  
-  delete game;
-  return 0;
 }

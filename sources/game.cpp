@@ -7,10 +7,7 @@ Game::Game():
   quit_(false),
   main_window_(nullptr),
   renderer_(nullptr),
-  score_(nullptr) {
-
-  init();
-}
+  score_(nullptr) {}
 
 Game::~Game() {
   clean();
@@ -41,6 +38,45 @@ void Game::handleKeyEvents(const SDL_Keycode& key) {
   }
 }
 
+bool Game::init() {
+  if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+    ktp::logSDLError("SDL_Init");
+    return false;
+  }
+
+  if (TTF_Init() != 0) {
+    ktp::logSDLError("TTF_Init");
+    SDL_Quit();
+    return false;
+  }
+
+  main_window_ = SDL_CreateWindow("SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, kSCREEN_WIDTH_, kSCREEN_HEIGHT_, SDL_WINDOW_SHOWN);
+  if (main_window_ == nullptr) {
+	  ktp::logSDLError("SDL_CreateWindow");
+    TTF_Quit();
+    SDL_Quit();
+    return false;
+	}
+
+  renderer_ = SDL_CreateRenderer(main_window_, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+  if (renderer_ == nullptr) {
+    ktp::logSDLError("SDL_CreateRenderer");
+    ktp::cleanup(main_window_);
+    TTF_Quit();
+    SDL_Quit();
+    return false;
+  }
+
+  score_ = renderText("holamanola", "./resources/Future n0t Found.ttf", font_color_, 64, renderer_);
+  if (score_ == nullptr) {
+    ktp::cleanup(renderer_, main_window_);
+    TTF_Quit();
+    SDL_Quit();
+    return false;
+  }
+  return true;
+}
+
 void Game::render() {
   int width, height;
   SDL_QueryTexture(score_, NULL, NULL, &width, &height);
@@ -61,45 +97,6 @@ void Game::update() {
 void Game::clean() {
   ktp::cleanup(renderer_, main_window_);
 	SDL_Quit();
-}
-
-void Game::init() {
-  if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-    ktp::logSDLError("SDL_Init");
-    // return 1;
-  }
-
-  if (TTF_Init() != 0) {
-    ktp::logSDLError("TTF_Init");
-    SDL_Quit();
-    // return 1;
-  }
-
-  main_window_ = SDL_CreateWindow("SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, kSCREEN_WIDTH_, kSCREEN_HEIGHT_, SDL_WINDOW_SHOWN);
-  if (main_window_ == nullptr) {
-	  ktp::logSDLError("SDL_CreateWindow");
-    TTF_Quit();
-    SDL_Quit();
-    // return 1;
-	}
-
-  renderer_ = SDL_CreateRenderer(main_window_, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-  if (renderer_ == nullptr) {
-    ktp::logSDLError("SDL_CreateRenderer");
-    ktp::cleanup(main_window_);
-    TTF_Quit();
-    SDL_Quit();
-    // return 1;
-  }
-
-  score_ = renderText("holamanola", "./resources/Future n0t Found.ttf", font_color_, 64, renderer_);
-  if (score_ == nullptr) {
-    ktp::cleanup(renderer_, main_window_);
-    TTF_Quit();
-    SDL_Quit();
-    // return 1;
-  }
-  // return 0;
 }
 
 /* Original idea from Will Usher */

@@ -15,6 +15,7 @@ class Game {
  public: 
   void handleEvents();
   void handleKeyEvents(const SDL_Keycode& key);
+  bool init();
   void render();
   void update();
   
@@ -23,7 +24,6 @@ class Game {
 
  private:
   void clean();
-  void init();
   SDL_Texture* renderText(const std::string& message, 
                           const std::string& file, 
                           SDL_Color color, 
