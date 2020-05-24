@@ -32,5 +32,8 @@
     <ClInclude Include="include\cleanup.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\resources_path.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

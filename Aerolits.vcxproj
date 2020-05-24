@@ -152,6 +152,7 @@
     <ClInclude Include="headers\game.h" />
     <ClInclude Include="include\cleanup.h" />
     <ClInclude Include="include\log.h" />
+    <ClInclude Include="include\resources_path.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

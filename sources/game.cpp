@@ -67,7 +67,7 @@ bool Game::init() {
     return false;
   }
 
-  score_ = renderText("holamanola", "./resources/Future n0t Found.ttf", font_color_, 64, renderer_);
+  score_ = renderText("holamanola", ktp::getResourcesPath() + "Future n0t Found.ttf", font_color_, 64, renderer_);
   if (score_ == nullptr) {
     ktp::cleanup(renderer_, main_window_);
     TTF_Quit();

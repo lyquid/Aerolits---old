@@ -6,6 +6,7 @@
 
 #include "../include/cleanup.h"
 #include "../include/log.h"
+#include "../include/resources_path.h"
 
 class Game {
  public:
@@ -33,7 +34,7 @@ class Game {
 
   const unsigned int kSCREEN_HEIGHT_;
   const unsigned int kSCREEN_WIDTH_;
-  const SDL_Color font_color_;
+  const SDL_Color font_color_; // CONST NOTATION MISSING
 
   SDL_Event event_;
   SDL_Renderer* renderer_;
