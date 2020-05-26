@@ -2,13 +2,12 @@
 
 Game::Game():
   quit_(false),
-  kSCREEN_HEIGHT_(768),
-  kSCREEN_WIDTH_(1024),
+  kSCREEN_SIZE_({1024, 768}),
   font_color_({255, 255, 255, 255}),
   font_(nullptr),
   main_window_(nullptr),
   renderer_(nullptr),
-  fps_texture_(nullptr) {}
+  fps_texture_(nullptr) { }
 
 Game::~Game() { clean(); }
 
@@ -49,7 +48,7 @@ bool Game::init() {
     return false;
   }
 
-  main_window_ = SDL_CreateWindow("SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, kSCREEN_WIDTH_, kSCREEN_HEIGHT_, SDL_WINDOW_SHOWN);
+  main_window_ = SDL_CreateWindow("SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, kSCREEN_SIZE_.x, kSCREEN_SIZE_.y, SDL_WINDOW_SHOWN);
   if (main_window_ == nullptr) {
 	  ktp::logSDLError("SDL_CreateWindow");
     TTF_Quit();
@@ -75,22 +74,33 @@ bool Game::init() {
     SDL_Quit();
     return false;
   }
+
+  generateAerolites(10);
+
   return true;
 }
 
 void Game::render() {
+  SDL_SetRenderDrawColor(renderer_, 0x00, 0x00, 0x00, 0x00);
   SDL_RenderClear(renderer_);
+
   renderTexture(fps_texture_, renderer_, 0u, 0u);
+  renderAerolites();
+
   SDL_RenderPresent(renderer_);
   ++fps_;
 }
 
 void Game::update() {
+  /* FPS */
   fps_text_.str(std::string());
   fps_text_ << fps_.average();
-
   ktp::cleanup(fps_texture_); // <-- is this really necessary? seems to...
   fps_texture_ = renderText(fps_text_.str(), font_, font_color_, 8, renderer_); // size not working
+
+  /* Aerolites */
+  const float delta_time = clock_.restart() / 1000.f;
+  updateAerolites(delta_time);
  }
 
 /* Private methods below */
@@ -99,6 +109,19 @@ void Game::clean() {
   ktp::cleanup(fps_texture_, renderer_, main_window_, font_);
   TTF_Quit();
 	SDL_Quit();
+}
+
+void Game::generateAerolites(unsigned int number) {
+  for (auto i = 0u; i < number; ++i) {
+    aerolites_.push_back(std::unique_ptr<SpaceObject>(new SpaceObject(100.f, kSCREEN_SIZE_)));
+  }
+}
+
+void Game::renderAerolites() {
+  SDL_SetRenderDrawColor(renderer_, 0xFF, 0xFF, 0xFF, 0xFF);
+  for (const auto& aerolite: aerolites_ ) {
+    aerolite->render(renderer_);
+  }
 }
 
 /* Original idea from Will Usher */
@@ -145,4 +168,10 @@ void Game::renderTexture(SDL_Texture* tex, SDL_Renderer* ren, int x, int y){
 	// Query the texture to get its width and height to use
 	SDL_QueryTexture(tex, NULL, NULL, &dst.w, &dst.h);
 	SDL_RenderCopy(ren, tex, NULL, &dst);
+}
+
+void Game::updateAerolites(float delta_time) {
+  for (auto& aerolite: aerolites_ ) {
+    aerolite->move(delta_time, kSCREEN_SIZE_);
+  }
 }

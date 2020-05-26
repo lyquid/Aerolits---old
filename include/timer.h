@@ -39,6 +39,13 @@ class Timer {
 
   void resume() { unpause(); }
 
+  float restart() {
+    auto time = getTicks();
+    stop();
+    start();
+    return time;
+  }
+
   void start() {
     started_ = true;
     paused_ = false;

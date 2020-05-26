@@ -147,10 +147,13 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="sources\game.cpp" />
+    <ClCompile Include="sources\space_objects.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="headers\game.h" />
+    <ClInclude Include="headers\space_objects.h" />
     <ClInclude Include="include\cleanup.h" />
+    <ClInclude Include="include\fps.h" />
     <ClInclude Include="include\log.h" />
     <ClInclude Include="include\resources_path.h" />
   </ItemGroup>
