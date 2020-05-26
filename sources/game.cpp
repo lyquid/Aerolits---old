@@ -1,17 +1,16 @@
 #include "../headers/game.h"
 
 Game::Game():
-  kSCREEN_HEIGHT_(600),
-  kSCREEN_WIDTH_(800),
-  font_color_({255, 255, 255, 255}),
   quit_(false),
+  kSCREEN_HEIGHT_(768),
+  kSCREEN_WIDTH_(1024),
+  font_color_({255, 255, 255, 255}),
+  font_(nullptr),
   main_window_(nullptr),
   renderer_(nullptr),
-  score_(nullptr) {}
+  fps_texture_(nullptr) {}
 
-Game::~Game() {
-  clean();
-}
+Game::~Game() { clean(); }
 
 void Game::handleEvents() {
   while (SDL_PollEvent(&event_)) {
@@ -67,8 +66,10 @@ bool Game::init() {
     return false;
   }
 
-  score_ = renderText("holamanola", ktp::getResourcesPath() + "Future n0t Found.ttf", font_color_, 64, renderer_);
-  if (score_ == nullptr) {
+  // font_ = TTF_OpenFont((ktp::getResourcesPath() + "Future n0t Found.ttf").c_str(), 32); // need to fix this
+  font_ = TTF_OpenFont("./resources/Future n0t Found.ttf", 18u);
+  if (font_ == nullptr) {
+    ktp::logSDLError("TTF_OpenFont");
     ktp::cleanup(renderer_, main_window_);
     TTF_Quit();
     SDL_Quit();
@@ -78,22 +79,24 @@ bool Game::init() {
 }
 
 void Game::render() {
-  int width, height;
-  SDL_QueryTexture(score_, NULL, NULL, &width, &height);
-  int x = kSCREEN_WIDTH_ / 2 - width / 2;
-  int y = kSCREEN_HEIGHT_ / 2 - height / 2;
-
   SDL_RenderClear(renderer_);
-  renderTexture(score_, renderer_, x, y);
+  renderTexture(fps_texture_, renderer_, 0u, 0u);
   SDL_RenderPresent(renderer_);
+  ++fps_;
 }
 
-void Game::update() { }
+void Game::update() {
+  fps_text_.str(std::string());
+  fps_text_ << fps_.average();
+
+  ktp::cleanup(fps_texture_); // <-- is this really necessary? seems to...
+  fps_texture_ = renderText(fps_text_.str(), font_, font_color_, 8, renderer_); // size not working
+ }
 
 /* Private methods below */
 
 void Game::clean() {
-  ktp::cleanup(score_, renderer_, main_window_);
+  ktp::cleanup(fps_texture_, renderer_, main_window_, font_);
   TTF_Quit();
 	SDL_Quit();
 }
@@ -103,34 +106,26 @@ void Game::clean() {
 /**
 * Render the message we want to display to a texture for drawing.
 * @param message The message we want to display.
-* @param fontFile The font we want to use to render the text.
+* @param font The font we want to use to render the text.
 * @param color The color we want the text to be.
-* @param fontSize The size we want the font to be.
+* @param size The size we want the font to be.
 * @param renderer The renderer to load the texture in.
-* @return An SDL_Texture containing the rendered message, or nullptr if something went wrong.
 */
-SDL_Texture* Game::renderText(const std::string& message, const std::string& file,
-	                      SDL_Color color, int size, SDL_Renderer* renderer) {
+SDL_Texture* Game::renderText(const std::string& message, TTF_Font* font,
+	                            SDL_Color color, int size, SDL_Renderer* renderer) {
     
-  TTF_Font* font = TTF_OpenFont(file.c_str(), size);
-  if (font == nullptr) {
-    ktp::logSDLError("TTF_OpenFont");
-    return nullptr;
-  }
-
-  SDL_Surface *surface = TTF_RenderText_Blended(font, message.c_str(), color);
+  SDL_Surface* surface = TTF_RenderText_Blended(font, message.c_str(), color);
   if (surface == nullptr) {
     ktp::logSDLError("TTF_RenderText_Blended");
-    TTF_CloseFont(font);
     return nullptr;
   }
 
-  SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+  SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
   if (texture == nullptr) {
     ktp::logSDLError("SDL_CreateTextureFromSurface");
   }
 
-  ktp::cleanup(surface, font);
+  ktp::cleanup(surface);
   return texture;
 }
 
