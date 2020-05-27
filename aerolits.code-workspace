@@ -42,7 +42,27 @@
 			"cinttypes": "cpp",
 			"utility": "cpp",
 			"typeinfo": "cpp",
-			"chrono": "cpp"
+			"chrono": "cpp",
+			"concepts": "cpp",
+			"cstddef": "cpp",
+			"cstring": "cpp",
+			"ios": "cpp",
+			"iterator": "cpp",
+			"memory": "cpp",
+			"random": "cpp",
+			"ratio": "cpp",
+			"string": "cpp",
+			"xfacet": "cpp",
+			"xiosbase": "cpp",
+			"xlocale": "cpp",
+			"xlocinfo": "cpp",
+			"xlocnum": "cpp",
+			"xmemory": "cpp",
+			"xstddef": "cpp",
+			"xstring": "cpp",
+			"xtr1common": "cpp",
+			"xutility": "cpp",
+			"list": "cpp"
 		}
 	}
 }

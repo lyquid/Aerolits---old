@@ -75,7 +75,7 @@ bool Game::init() {
     return false;
   }
 
-  generateAerolites(10);
+  generateAerolites(5u);
 
   return true;
 }
