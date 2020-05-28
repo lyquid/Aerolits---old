@@ -6,25 +6,23 @@
 #include <SDL.h>
 
 struct SpaceObject {
-  float x;
-  float y;
-  float dx;
-  float dy;
-  float size;
-  bool shadow_present;
-  float shadow_x;
-  float shadow_y;
-  static unsigned int count;
+  SDL_FRect shape_;
+  SDL_FPoint delta_;
+  bool shadow_present_;
+  SDL_FPoint shadow_;
+  static unsigned int count_;
 
-  SpaceObject(float sz, const SDL_Point& screen_size);
+  SpaceObject(float x, float y, float dx, float dy, float size);
+  SpaceObject(float aerolite_size, const SDL_Point& screen_size);
 
-  void calculateShadow(SDL_Rect& rect) const;  
+  bool checkCollision(const SpaceObject* target);
+
+  void getShadowRect(SDL_FRect& rect) const;
   
   void move(float delta_time, const SDL_Point& screen_size);
   
   void render(SDL_Renderer* renderer) const;
 
-  void toSDL_Rect(SDL_Rect& rect) const;
 };
 
 #endif // AEROLITS_HEADERS_SPACE_OBJECTS_H_

@@ -43,7 +43,7 @@ class Timer {
     auto time = getTicks();
     stop();
     start();
-    return time;
+    return static_cast<float>(time);
   }
 
   void start() {

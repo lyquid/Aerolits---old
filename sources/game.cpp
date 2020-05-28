@@ -2,8 +2,8 @@
 
 Game::Game():
   quit_(false),
-  kSCREEN_SIZE_({1024, 768}),
   font_color_({255, 255, 255, 255}),
+  kSCREEN_SIZE_({1024, 768}),
   font_(nullptr),
   main_window_(nullptr),
   renderer_(nullptr),
@@ -17,7 +17,7 @@ void Game::handleEvents() {
       case SDL_QUIT:
         quit_ = true;
         break;
-      case SDL_KEYDOWN: 
+      case SDL_KEYDOWN:
         handleKeyEvents(event_.key.keysym.sym);
         break;
       default:
@@ -75,7 +75,7 @@ bool Game::init() {
     return false;
   }
 
-  generateAerolites(5u);
+  generateAerolites(5);
 
   return true;
 }
@@ -114,14 +114,14 @@ void Game::clean() {
 void Game::generateAerolites(unsigned int number) {
   for (auto i = 0u; i < number; ++i) {
     aerolites_.push_back(std::unique_ptr<SpaceObject>(new SpaceObject(100.f, kSCREEN_SIZE_)));
-  }
+  } 
 }
 
 void Game::renderAerolites() {
   SDL_SetRenderDrawColor(renderer_, 0xFF, 0xFF, 0xFF, 0xFF);
   for (const auto& aerolite: aerolites_ ) {
     aerolite->render(renderer_);
-  }
+  } 
 }
 
 /* Original idea from Will Usher */
@@ -136,7 +136,7 @@ void Game::renderAerolites() {
 */
 SDL_Texture* Game::renderText(const std::string& message, TTF_Font* font,
 	                            SDL_Color color, int size, SDL_Renderer* renderer) {
-    
+
   SDL_Surface* surface = TTF_RenderText_Blended(font, message.c_str(), color);
   if (surface == nullptr) {
     ktp::logSDLError("TTF_RenderText_Blended");
@@ -171,7 +171,17 @@ void Game::renderTexture(SDL_Texture* tex, SDL_Renderer* ren, int x, int y){
 }
 
 void Game::updateAerolites(float delta_time) {
-  for (auto& aerolite: aerolites_ ) {
+  /* for (auto& aerolite: aerolites_ ) {
     aerolite->move(delta_time, kSCREEN_SIZE_);
+  } */
+  auto i = 0;
+  for (auto it_move = aerolites_.begin(); it_move != aerolites_.end(); ++it_move) {
+    it_move->get()->move(delta_time, kSCREEN_SIZE_);
+    for (auto it_col = it_move + 1; it_col != aerolites_.end(); ++it_col) {
+      // check collisions
+      // it_move->get()->checkCollision(it_col->get());
+      ++i;
+    }
   }
+  ktp::logMessage("checked collisions: " + std::to_string(i));
 }
