@@ -75,7 +75,7 @@ bool Game::init() {
     return false;
   }
 
-  generateAerolites(5);
+  generateAerolites(8);
 
   return true;
 }
@@ -84,7 +84,7 @@ void Game::render() {
   SDL_SetRenderDrawColor(renderer_, 0x00, 0x00, 0x00, 0x00);
   SDL_RenderClear(renderer_);
 
-  renderTexture(fps_texture_, renderer_, 0u, 0u);
+  renderTexture(fps_texture_, *renderer_, 0u, 0u);
   renderAerolites();
 
   SDL_RenderPresent(renderer_);
@@ -96,7 +96,7 @@ void Game::update() {
   fps_text_.str(std::string());
   fps_text_ << fps_.average();
   ktp::cleanup(fps_texture_); // <-- is this really necessary? seems to...
-  fps_texture_ = renderText(fps_text_.str(), font_, font_color_, 8, renderer_); // size not working
+  fps_texture_ = renderText(fps_text_.str(), font_, font_color_, 8, *renderer_); // size not working
 
   /* Aerolites */
   const float delta_time = clock_.restart() / 1000.f;
@@ -113,14 +113,14 @@ void Game::clean() {
 
 void Game::generateAerolites(unsigned int number) {
   for (auto i = 0u; i < number; ++i) {
-    aerolites_.push_back(std::unique_ptr<SpaceObject>(new SpaceObject(100.f, kSCREEN_SIZE_)));
+    aerolites_.push_back(std::unique_ptr<SpaceObject>(new SpaceObject(kSCREEN_SIZE_)));
   } 
 }
 
 void Game::renderAerolites() {
   SDL_SetRenderDrawColor(renderer_, 0xFF, 0xFF, 0xFF, 0xFF);
   for (const auto& aerolite: aerolites_ ) {
-    aerolite->render(renderer_);
+    aerolite->render(*renderer_);
   } 
 }
 
@@ -135,7 +135,7 @@ void Game::renderAerolites() {
 * @param renderer The renderer to load the texture in.
 */
 SDL_Texture* Game::renderText(const std::string& message, TTF_Font* font,
-	                            SDL_Color color, int size, SDL_Renderer* renderer) {
+	                            SDL_Color color, int size, SDL_Renderer& renderer) {
 
   SDL_Surface* surface = TTF_RenderText_Blended(font, message.c_str(), color);
   if (surface == nullptr) {
@@ -143,7 +143,7 @@ SDL_Texture* Game::renderText(const std::string& message, TTF_Font* font,
     return nullptr;
   }
 
-  SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+  SDL_Texture* texture = SDL_CreateTextureFromSurface(&renderer, surface);
   if (texture == nullptr) {
     ktp::logSDLError("SDL_CreateTextureFromSurface");
   }
@@ -160,21 +160,21 @@ SDL_Texture* Game::renderText(const std::string& message, TTF_Font* font,
 * @param x The x coordinate to draw to.
 * @param y The y coordinate to draw to.
 */
-void Game::renderTexture(SDL_Texture* tex, SDL_Renderer* ren, int x, int y){
+void Game::renderTexture(SDL_Texture* tex, SDL_Renderer& renderer, int x, int y){
 	// Setup the destination rectangle to be at the position we want
 	SDL_Rect dst;
 	dst.x = x;
 	dst.y = y;
 	// Query the texture to get its width and height to use
 	SDL_QueryTexture(tex, NULL, NULL, &dst.w, &dst.h);
-	SDL_RenderCopy(ren, tex, NULL, &dst);
+	SDL_RenderCopy(&renderer, tex, NULL, &dst);
 }
 
 void Game::updateAerolites(float delta_time) {
-  /* for (auto& aerolite: aerolites_ ) {
+  for (auto& aerolite: aerolites_ ) {
     aerolite->move(delta_time, kSCREEN_SIZE_);
-  } */
-  auto i = 0;
+  }
+  /* auto i = 0;
   for (auto it_move = aerolites_.begin(); it_move != aerolites_.end(); ++it_move) {
     it_move->get()->move(delta_time, kSCREEN_SIZE_);
     for (auto it_col = it_move + 1; it_col != aerolites_.end(); ++it_col) {
@@ -182,6 +182,6 @@ void Game::updateAerolites(float delta_time) {
       // it_move->get()->checkCollision(it_col->get());
       ++i;
     }
-  }
-  ktp::logMessage("checked collisions: " + std::to_string(i));
+  } */
+  // ktp::logMessage("checked collisions: " + std::to_string(i));
 }

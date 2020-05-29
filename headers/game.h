@@ -37,8 +37,8 @@ class Game {
                           TTF_Font* font,
                           SDL_Color color, 
                           int size, 
-                          SDL_Renderer* renderer);
-  void renderTexture(SDL_Texture* tex, SDL_Renderer* ren, int x, int y);
+                          SDL_Renderer& renderer);
+  void renderTexture(SDL_Texture* tex, SDL_Renderer& ren, int x, int y);
 
   const SDL_Color font_color_; // CONST NOTATION MISSING
   const SDL_Point kSCREEN_SIZE_;
