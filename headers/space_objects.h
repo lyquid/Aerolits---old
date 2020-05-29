@@ -38,9 +38,9 @@ struct SpaceObject {
 
   SDL_FPoint generatePosition(const SDL_Point& screen_size);
 
-  void generateSquareShape(SDL_FPoint where);
+  void generateSquareShape(const SDL_FPoint& where);
 
-  void generateCircleShape(SDL_FPoint where);
+  void generateCircleShape(const SDL_FPoint& where);
   
   void generateSize();
 

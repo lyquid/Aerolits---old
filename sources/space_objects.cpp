@@ -29,7 +29,7 @@ SpaceObject::SpaceObject(SpaceObjectType type, float x, float y, float dx, float
 
 SpaceObject::SpaceObject(const SDL_Point& screen_size) {
   generateSize(30, 65);
-  //generateSquareShape(generatePosition(screen_size));
+  // generateSquareShape(generatePosition(screen_size));
   generateCircleShape(generatePosition(screen_size));
   generateDelta();
   on_edge_ = false;
@@ -112,26 +112,18 @@ SDL_FPoint SpaceObject::generatePosition(const SDL_Point& screen_size) {
   return where;
 }
 
-void SpaceObject::generateSquareShape(SDL_FPoint where) {
-  // top
+void SpaceObject::generateSquareShape(const SDL_FPoint& where) {
   for (auto i = 0u; i < size_; ++i) {
     shape_.push_back({where.x + i, where.y});
-  }
-  // right
-  for (auto i = 1u; i < size_; ++i) {
-    shape_.push_back({where.x + size_, where.y + i});
-  }
-  // bottom
-  for (auto i = 1u; i < size_; ++i) {
-    shape_.push_back({where.x + i, where.y + size_});
-  }
-  // left
-  for (auto i = 1u; i < size_; ++i) {
-    shape_.push_back({where.x, where.y + i});
+    if (i >= 1u) {
+      shape_.push_back({where.x + size_, where.y + i});
+      shape_.push_back({where.x + i,     where.y + size_});
+      shape_.push_back({where.x,         where.y + i});
+    }
   }
 }
 
-void SpaceObject::generateCircleShape(SDL_FPoint where) {
+void SpaceObject::generateCircleShape(const SDL_FPoint& where) {
   const int32_t diameter = size_ * 2;
   int32_t x = size_ - 1;
   int32_t y = 0;
