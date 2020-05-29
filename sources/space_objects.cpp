@@ -4,6 +4,7 @@ unsigned int SpaceObject::count_ = 0u;
 
 SpaceObject::SpaceObject(float x, float y, float dx, float dy, unsigned int aerolite_size) {
   size_ = aerolite_size;
+  radius_ = static_cast<float>(size_) / 2.f;
   generateSquareShape({x, y});
   delta_.x = dx;
   delta_.y = dy; 
@@ -13,6 +14,7 @@ SpaceObject::SpaceObject(float x, float y, float dx, float dy, unsigned int aero
 
 SpaceObject::SpaceObject(SpaceObjectType type, float x, float y, float dx, float dy, unsigned int aerolite_size) {
   size_ = aerolite_size;
+  radius_ = static_cast<float>(size_) / 2.f;
   switch (type) {
     case SpaceObjectType::Square:
       generateSquareShape({x, y});
@@ -28,7 +30,8 @@ SpaceObject::SpaceObject(SpaceObjectType type, float x, float y, float dx, float
 }
 
 SpaceObject::SpaceObject(const SDL_Point& screen_size) {
-  generateSize(30, 65);
+  generateSize(60, 140);
+  radius_ = static_cast<float>(size_) / 2.f;
   // generateSquareShape(generatePosition(screen_size));
   generateCircleShape(generatePosition(screen_size));
   generateDelta();
@@ -38,6 +41,7 @@ SpaceObject::SpaceObject(const SDL_Point& screen_size) {
 
 SpaceObject::SpaceObject(unsigned int aerolite_size, const SDL_Point& screen_size) {
   size_ = aerolite_size;
+  radius_ = static_cast<float>(size_) / 2.f;
   generateSquareShape(generatePosition(screen_size));
   generateDelta();
   on_edge_ = false;
@@ -46,6 +50,7 @@ SpaceObject::SpaceObject(unsigned int aerolite_size, const SDL_Point& screen_siz
 
 SpaceObject::SpaceObject(const SpaceObject& object) {
   size_ = object.size_;
+  radius_ = object.radius_;
   shape_ = object.shape_;
   delta_ = object.delta_;
   on_edge_ = object.on_edge_;
@@ -124,8 +129,8 @@ void SpaceObject::generateSquareShape(const SDL_FPoint& where) {
 }
 
 void SpaceObject::generateCircleShape(const SDL_FPoint& where) {
-  const int32_t diameter = size_ * 2;
-  int32_t x = size_ - 1;
+  const int32_t diameter = radius_ * 2;
+  int32_t x = radius_ - 1;
   int32_t y = 0;
   int32_t tx = 1;
   int32_t ty = 1;

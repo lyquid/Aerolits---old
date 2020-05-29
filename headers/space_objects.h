@@ -17,8 +17,9 @@ struct SpaceObject {
   std::vector<SDL_FPoint> shape_;
   SDL_FPoint delta_;
   unsigned int size_;
-  static unsigned int count_;
+  float radius_;
   bool on_edge_;
+  static unsigned int count_;
 
   SpaceObject(float x, float y, float dx, float dy, unsigned int aerolite_size);
   SpaceObject(SpaceObjectType type, float x, float y, float dx, float dy, unsigned int aerolite_size);
