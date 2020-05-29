@@ -6,6 +6,13 @@
 #include <vector>
 #include <SDL.h>
 
+enum class SpaceObjectType { 
+  Square,
+  Round,
+  Ship,
+  count
+};
+
 struct SpaceObject {
   std::vector<SDL_FPoint> shape_;
   SDL_FPoint delta_;
@@ -14,8 +21,10 @@ struct SpaceObject {
   bool on_edge_;
 
   SpaceObject(float x, float y, float dx, float dy, unsigned int aerolite_size);
+  SpaceObject(SpaceObjectType type, float x, float y, float dx, float dy, unsigned int aerolite_size);
   SpaceObject(const SDL_Point& screen_size);
   SpaceObject(unsigned int aerolite_size, const SDL_Point& screen_size);
+  SpaceObject(const SpaceObject& object);
 
   bool checkCollision(const SpaceObject& target);
   
@@ -29,9 +38,13 @@ struct SpaceObject {
 
   SDL_FPoint generatePosition(const SDL_Point& screen_size);
 
-  void generateShape(SDL_FPoint where);
+  void generateSquareShape(SDL_FPoint where);
+
+  void generateCircleShape(SDL_FPoint where);
   
   void generateSize();
+
+  void generateSize(unsigned int min, unsigned int max);
 
   void warpCoordinates(SDL_FPoint& point, const SDL_Point& screen_size);
 };

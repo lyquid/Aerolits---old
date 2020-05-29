@@ -4,7 +4,23 @@ unsigned int SpaceObject::count_ = 0u;
 
 SpaceObject::SpaceObject(float x, float y, float dx, float dy, unsigned int aerolite_size) {
   size_ = aerolite_size;
-  generateShape({x, y});
+  generateSquareShape({x, y});
+  delta_.x = dx;
+  delta_.y = dy; 
+  on_edge_ = false;
+  ++count_;
+}
+
+SpaceObject::SpaceObject(SpaceObjectType type, float x, float y, float dx, float dy, unsigned int aerolite_size) {
+  size_ = aerolite_size;
+  switch (type) {
+    case SpaceObjectType::Square:
+      generateSquareShape({x, y});
+      break;
+    case SpaceObjectType::Round:
+      generateCircleShape({x, y});
+      break;
+  }
   delta_.x = dx;
   delta_.y = dy; 
   on_edge_ = false;
@@ -12,8 +28,9 @@ SpaceObject::SpaceObject(float x, float y, float dx, float dy, unsigned int aero
 }
 
 SpaceObject::SpaceObject(const SDL_Point& screen_size) {
-  generateSize();
-  generateShape(generatePosition(screen_size));
+  generateSize(30, 65);
+  //generateSquareShape(generatePosition(screen_size));
+  generateCircleShape(generatePosition(screen_size));
   generateDelta();
   on_edge_ = false;
   ++count_;
@@ -21,9 +38,17 @@ SpaceObject::SpaceObject(const SDL_Point& screen_size) {
 
 SpaceObject::SpaceObject(unsigned int aerolite_size, const SDL_Point& screen_size) {
   size_ = aerolite_size;
-  generateShape(generatePosition(screen_size));
+  generateSquareShape(generatePosition(screen_size));
   generateDelta();
   on_edge_ = false;
+  ++count_;
+}
+
+SpaceObject::SpaceObject(const SpaceObject& object) {
+  size_ = object.size_;
+  shape_ = object.shape_;
+  delta_ = object.delta_;
+  on_edge_ = object.on_edge_;
   ++count_;
 }
 
@@ -87,37 +112,64 @@ SDL_FPoint SpaceObject::generatePosition(const SDL_Point& screen_size) {
   return where;
 }
 
-void SpaceObject::generateShape(SDL_FPoint where) {
-  SDL_FPoint copy_point;
+void SpaceObject::generateSquareShape(SDL_FPoint where) {
   // top
   for (auto i = 0u; i < size_; ++i) {
-    copy_point.x = where.x + i;
-    copy_point.y = where.y;
-    shape_.push_back(copy_point);
+    shape_.push_back({where.x + i, where.y});
   }
   // right
   for (auto i = 1u; i < size_; ++i) {
-    copy_point.x = where.x + size_;
-    copy_point.y = where.y + i;
-    shape_.push_back(copy_point);
+    shape_.push_back({where.x + size_, where.y + i});
   }
   // bottom
   for (auto i = 1u; i < size_; ++i) {
-    copy_point.x = where.x + i;
-    copy_point.y = where.y + size_;
-    shape_.push_back(copy_point);
+    shape_.push_back({where.x + i, where.y + size_});
   }
   // left
   for (auto i = 1u; i < size_; ++i) {
-    copy_point.x = where.x;
-    copy_point.y = where.y + i;
-    shape_.push_back(copy_point);
+    shape_.push_back({where.x, where.y + i});
+  }
+}
+
+void SpaceObject::generateCircleShape(SDL_FPoint where) {
+  const int32_t diameter = size_ * 2;
+  int32_t x = size_ - 1;
+  int32_t y = 0;
+  int32_t tx = 1;
+  int32_t ty = 1;
+  int32_t error = (tx - diameter);
+
+  while (x >= y) {
+    shape_.push_back({where.x + x, where.y - y});
+    shape_.push_back({where.x + x, where.y + y});
+    shape_.push_back({where.x - x, where.y - y});
+    shape_.push_back({where.x - x, where.y + y});
+    shape_.push_back({where.x + y, where.y - x});
+    shape_.push_back({where.x + y, where.y + x});
+    shape_.push_back({where.x - y, where.y - x});
+    shape_.push_back({where.x - y, where.y + x});
+
+    if (error <= 0) {
+      ++y;
+      error += ty;
+      ty += 2;
+    }
+
+    if (error > 0) {
+      --x;
+      tx += 2;
+      error += (tx - diameter);
+    }
   }
 }
 
 void SpaceObject::generateSize() {
+  generateSize(70u, 130u);
+}
+
+void SpaceObject::generateSize(unsigned int min, unsigned int max) {
   std::mt19937 generator(std::chrono::system_clock::now().time_since_epoch().count());
-  std::uniform_int_distribution<unsigned int> distribution(70u, 130u);
+  std::uniform_int_distribution<unsigned int> distribution(min, max);
   size_ = distribution(generator);
 }
 
