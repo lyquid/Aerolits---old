@@ -7,7 +7,8 @@ Game::Game():
   font_(nullptr),
   main_window_(nullptr),
   renderer_(nullptr),
-  fps_texture_(nullptr) { }
+  fps_texture_(nullptr),
+  player_(kSCREEN_SIZE_) {}
 
 Game::~Game() { clean(); }
 
@@ -86,6 +87,7 @@ void Game::render() {
 
   renderTexture(fps_texture_, *renderer_, 0u, 0u);
   renderAerolites();
+  player_.render(*renderer_);
 
   SDL_RenderPresent(renderer_);
   ++fps_;
@@ -113,7 +115,7 @@ void Game::clean() {
 
 void Game::generateAerolites(unsigned int number) {
   for (auto i = 0u; i < number; ++i) {
-    aerolites_.push_back(std::unique_ptr<SpaceObject>(new SpaceObject(kSCREEN_SIZE_)));
+    aerolites_.push_back(std::unique_ptr<Aerolite>(new Aerolite(kSCREEN_SIZE_)));
   } 
 }
 

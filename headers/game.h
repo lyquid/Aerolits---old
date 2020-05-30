@@ -55,10 +55,13 @@ class Game {
   SDL_Texture*      fps_texture_;
 
   /* Asteroids stuff */
-  std::vector<std::unique_ptr<SpaceObject>> aerolites_;
+  std::vector<std::unique_ptr<Aerolite>> aerolites_;
   void generateAerolites(unsigned int number);
   void renderAerolites();
   void updateAerolites(float delta_time);
+
+  /* Player stuff */
+  Player player_;
 };
 
 #endif // AEROLITS_HEADERS_GAME_H_

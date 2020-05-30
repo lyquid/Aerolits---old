@@ -147,7 +147,8 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="sources\game.cpp" />
-    <ClCompile Include="sources\space_objects.cpp" />
+    <ClCompile Include="sources\player.cpp" />
+    <ClCompile Include="sources\aerolite.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="headers\game.h" />

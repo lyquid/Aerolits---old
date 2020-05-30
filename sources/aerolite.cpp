@@ -1,8 +1,8 @@
 #include "../headers/space_objects.h"
 
-unsigned int SpaceObject::count_ = 0u;
+unsigned int Aerolite::count_ = 0u;
 
-SpaceObject::SpaceObject(float x, float y, float dx, float dy, unsigned int aerolite_size) {
+Aerolite::Aerolite(float x, float y, float dx, float dy, unsigned int aerolite_size) {
   size_ = aerolite_size;
   radius_ = static_cast<float>(size_) / 2.f;
   generateSquareShape({x, y});
@@ -12,7 +12,7 @@ SpaceObject::SpaceObject(float x, float y, float dx, float dy, unsigned int aero
   ++count_;
 }
 
-SpaceObject::SpaceObject(SpaceObjectType type, float x, float y, float dx, float dy, unsigned int aerolite_size) {
+Aerolite::Aerolite(SpaceObjectType type, float x, float y, float dx, float dy, unsigned int aerolite_size) {
   size_ = aerolite_size;
   radius_ = static_cast<float>(size_) / 2.f;
   switch (type) {
@@ -29,7 +29,7 @@ SpaceObject::SpaceObject(SpaceObjectType type, float x, float y, float dx, float
   ++count_;
 }
 
-SpaceObject::SpaceObject(const SDL_Point& screen_size) {
+Aerolite::Aerolite(const SDL_Point& screen_size) {
   generateSize(60, 140);
   radius_ = static_cast<float>(size_) / 2.f;
   // generateSquareShape(generatePosition(screen_size));
@@ -39,7 +39,7 @@ SpaceObject::SpaceObject(const SDL_Point& screen_size) {
   ++count_;
 }
 
-SpaceObject::SpaceObject(unsigned int aerolite_size, const SDL_Point& screen_size) {
+Aerolite::Aerolite(unsigned int aerolite_size, const SDL_Point& screen_size) {
   size_ = aerolite_size;
   radius_ = static_cast<float>(size_) / 2.f;
   generateSquareShape(generatePosition(screen_size));
@@ -48,7 +48,7 @@ SpaceObject::SpaceObject(unsigned int aerolite_size, const SDL_Point& screen_siz
   ++count_;
 }
 
-SpaceObject::SpaceObject(const SpaceObject& object) {
+Aerolite::Aerolite(const Aerolite& object) {
   size_ = object.size_;
   radius_ = object.radius_;
   shape_ = object.shape_;
@@ -57,13 +57,13 @@ SpaceObject::SpaceObject(const SpaceObject& object) {
   ++count_;
 }
 
-bool SpaceObject::checkCollision(const SpaceObject& target) {
+bool Aerolite::checkCollision(const Aerolite& target) {
   bool collided = false;
 
   return collided;
 }
 
-void SpaceObject::move(float delta_time, const SDL_Point& screen_size) {
+void Aerolite::move(float delta_time, const SDL_Point& screen_size) {
   // trying to just wapr coordinates only on shapes at the edges
   // not working properly
   /* SDL_Rect test;
@@ -91,7 +91,7 @@ void SpaceObject::move(float delta_time, const SDL_Point& screen_size) {
   }
 }
 
-void SpaceObject::render(SDL_Renderer& renderer) const {
+void Aerolite::render(SDL_Renderer& renderer) const {
   for (const auto& point: shape_) {
     SDL_RenderDrawPointF(&renderer, point.x, point.y);
   }
@@ -99,7 +99,7 @@ void SpaceObject::render(SDL_Renderer& renderer) const {
 
 /* PRIVATE */
 
-void SpaceObject::generateDelta() {
+void Aerolite::generateDelta() {
   std::mt19937 generator(std::chrono::system_clock::now().time_since_epoch().count());
   std::uniform_real_distribution<float> distribution_dx(-100.f, 100.f);
   delta_.x = distribution_dx(generator);
@@ -107,7 +107,7 @@ void SpaceObject::generateDelta() {
   delta_.y = distribution_dy(generator);
 }
 
-SDL_FPoint SpaceObject::generatePosition(const SDL_Point& screen_size) {
+SDL_FPoint Aerolite::generatePosition(const SDL_Point& screen_size) {
   SDL_FPoint where;
   std::mt19937 generator(std::chrono::system_clock::now().time_since_epoch().count());
   std::uniform_real_distribution<float> distribution_x(0.f, screen_size.x);
@@ -117,7 +117,7 @@ SDL_FPoint SpaceObject::generatePosition(const SDL_Point& screen_size) {
   return where;
 }
 
-void SpaceObject::generateSquareShape(const SDL_FPoint& where) {
+void Aerolite::generateSquareShape(const SDL_FPoint& where) {
   for (auto i = 0u; i < size_; ++i) {
     shape_.push_back({where.x + i, where.y});
     if (i >= 1u) {
@@ -128,7 +128,7 @@ void SpaceObject::generateSquareShape(const SDL_FPoint& where) {
   }
 }
 
-void SpaceObject::generateCircleShape(const SDL_FPoint& where) {
+void Aerolite::generateCircleShape(const SDL_FPoint& where) {
   const int32_t diameter = radius_ * 2;
   int32_t x = radius_ - 1;
   int32_t y = 0;
@@ -160,17 +160,17 @@ void SpaceObject::generateCircleShape(const SDL_FPoint& where) {
   }
 }
 
-void SpaceObject::generateSize() {
+void Aerolite::generateSize() {
   generateSize(70u, 130u);
 }
 
-void SpaceObject::generateSize(unsigned int min, unsigned int max) {
+void Aerolite::generateSize(unsigned int min, unsigned int max) {
   std::mt19937 generator(std::chrono::system_clock::now().time_since_epoch().count());
   std::uniform_int_distribution<unsigned int> distribution(min, max);
   size_ = distribution(generator);
 }
 
-void SpaceObject::warpCoordinates(SDL_FPoint& point, const SDL_Point& screen_size) {
+void Aerolite::warpCoordinates(SDL_FPoint& point, const SDL_Point& screen_size) {
   if (point.x < 0) {
     point.x = screen_size.x + point.x;
   } else if (point.x > screen_size.x - 1u) {
