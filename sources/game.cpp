@@ -25,6 +25,7 @@ void Game::handleEvents() {
         break;
     }
   }
+  // checkKeyStates();
 }
 
 void Game::handleKeyEvents(const SDL_Keycode& key) {
@@ -103,9 +104,29 @@ void Game::update() {
   /* Aerolites */
   const float delta_time = clock_.restart() / 1000.f;
   updateAerolites(delta_time);
+
+  /* Player */ 
+  checkKeyStates(delta_time);
+  player_.move(delta_time);
  }
 
 /* Private methods below */
+
+void Game::checkKeyStates(float delta_time) {
+  const Uint8* state = SDL_GetKeyboardState(nullptr);
+  if (state[SDL_SCANCODE_W] || state[SDL_SCANCODE_UP]){
+    player_.thrust(delta_time);
+  }
+  if (state[SDL_SCANCODE_A] || state[SDL_SCANCODE_LEFT]){
+    player_.steerLeft(delta_time);
+  }
+  if (state[SDL_SCANCODE_D] || state[SDL_SCANCODE_RIGHT]){
+    player_.steerRight(delta_time);
+  }
+  if (state[SDL_SCANCODE_SPACE]){
+    player_.shoot(delta_time);
+  }
+}
 
 void Game::clean() {
   ktp::cleanup(fps_texture_, renderer_, main_window_, font_);

@@ -2,6 +2,7 @@
 #define AEROLITS_HEADERS_SPACE_OBJECTS_H_
 
 #include <chrono>
+#include <cmath>
 #include <random>
 #include <vector>
 #include <SDL.h>
@@ -54,16 +55,24 @@ struct Aerolite : SpaceObject {
 };
 
 struct Player : SpaceObject {
-  float angle_;
-  SDL_FPoint center_;
 
   Player(const SDL_Point& screen_size);
 
+  void move(float delta_time);
   void render(SDL_Renderer& renderer) const;
+  void thrust(float delta_time);
+  void shoot(float delta_time);
+  void steerLeft(float delta_time);
+  void steerRight(float delta_time);
  
  private:
- 
-  void generatePlayerShape(const SDL_FPoint& where);
+  float angle_;
+  SDL_FPoint center_;
+  float size_;
+  std::vector<SDL_FPoint> render_shape_;
+
+  void generatePlayerShape();
+  void rotatePlayer();
 
 };
 #endif // AEROLITS_HEADERS_SPACE_OBJECTS_H_

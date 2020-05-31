@@ -32,6 +32,7 @@ class Game {
   bool quit_;
 
  private:
+  void checkKeyStates(float delta_time);
   void clean();
   SDL_Texture* renderText(const std::string& message, 
                           TTF_Font* font,
