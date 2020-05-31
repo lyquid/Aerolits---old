@@ -2,6 +2,7 @@
 #define AEROLITS_HEADERS_SPACE_OBJECTS_H_
 
 #include <chrono>
+#include <memory>
 #include <random>
 #include <vector>
 #include <SDL.h>
@@ -29,7 +30,7 @@ struct SpaceObject {
 
   bool checkCollision(const SpaceObject& target);
   
-  void move(float delta_time, const SDL_Point& screen_size);
+  void move(float delta_time, const SDL_Point& screen_size, std::vector<std::unique_ptr<SpaceObject>>& aerolites);
   
   void render(SDL_Renderer& renderer) const;
 

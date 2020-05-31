@@ -63,7 +63,7 @@ bool SpaceObject::checkCollision(const SpaceObject& target) {
   return collided;
 }
 
-void SpaceObject::move(float delta_time, const SDL_Point& screen_size) {
+void SpaceObject::move(float delta_time, const SDL_Point& screen_size, std::vector<std::unique_ptr<SpaceObject>>& aerolites) {
   // trying to just wapr coordinates only on shapes at the edges
   // not working properly
   /* SDL_Rect test;
@@ -83,11 +83,24 @@ void SpaceObject::move(float delta_time, const SDL_Point& screen_size) {
     on_edge_ = true;
   } */
 
-  for (auto& point: shape_) {
-    point.x += delta_.x * delta_time;
-    point.y += delta_.y * delta_time;
+  for (auto it = shape_.begin(); it != shape_.end(); ++it) {
+
+    it->x += delta_.x * delta_time;
+    if (it == shape_.end()) { // carefull with this. Maybe: std::next(it) == shape_.end()
+      for (auto& aerolite: aerolites) {
+        checkCollision(*aerolite);
+      }
+    }
+
+    it->y += delta_.y * delta_time;
+    if (it == shape_.end()) {
+      for (auto& aerolite: aerolites) {
+        checkCollision(*aerolite);
+      }
+    }
+
     // if (on_edge_) warpCoordinates(point, screen_size);
-    warpCoordinates(point, screen_size);
+    warpCoordinates(*it, screen_size);
   }
 }
 

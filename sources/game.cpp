@@ -172,7 +172,7 @@ void Game::renderTexture(SDL_Texture* tex, SDL_Renderer& renderer, int x, int y)
 
 void Game::updateAerolites(float delta_time) {
   for (auto& aerolite: aerolites_ ) {
-    aerolite->move(delta_time, kSCREEN_SIZE_);
+    aerolite->move(delta_time, kSCREEN_SIZE_, aerolites_);
   }
   /* auto i = 0;
   for (auto it_move = aerolites_.begin(); it_move != aerolites_.end(); ++it_move) {
