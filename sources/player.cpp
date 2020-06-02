@@ -1,13 +1,13 @@
 #include "../headers/space_objects.h"
 
 Player::Player(const SDL_Point& screen_size): 
-  kSCREEN_SIZE_({screen_size.x, screen_size.y}),
+  delta_({0.f, 0.f}),
+  radius_(0.f),
   angle_(0.f), 
   center_({screen_size.x / 2.f, screen_size.y / 2.f}),
-  size_(40.f) {
+  size_(40.f),
+  kSCREEN_SIZE_({screen_size.x, screen_size.y}) {
 
-  delta_ = {0.f, 0.f};
-  radius_ = 0.f;
   generatePlayerShape();
   render_shape_.resize(shape_.size());
   render_shape_clones_.resize(8u);
@@ -16,7 +16,6 @@ Player::Player(const SDL_Point& screen_size):
 
 void Player::move(float delta_time) {
   
-  rotatePlayer();
   SDL_FPoint offset({0.f, 0.f});
 
   center_.x += delta_.x * delta_time;
@@ -41,15 +40,14 @@ void Player::move(float delta_time) {
     point.x += (delta_.x * delta_time) + offset.x;
     point.y += (delta_.y * delta_time) + offset.y;
   }
-  
-  copyClones();
 }
 
 void Player::render(SDL_Renderer& renderer) const {
   SDL_RenderDrawLinesF(&renderer, render_shape_.data(), shape_.size());
-  for (auto& clone: render_shape_clones_) {
+  for (const auto& clone: render_shape_clones_) {
     SDL_RenderDrawLinesF(&renderer, clone.data(), shape_.size());
   }
+  SDL_RenderDrawPointsF(&renderer, bullets_.data(), bullets_.size());
 }
 
 void Player::thrust(float delta_time) {
@@ -57,7 +55,10 @@ void Player::thrust(float delta_time) {
   delta_.y += -std::cos(angle_) * 200.f * delta_time;
 }
 
-void Player::shoot(float delta_time) {}
+void Player::shoot(float delta_time) {
+  SDL_FPoint x = {center_.x, center_.y - size_};
+  bullets_.push_back(x);
+}
 
 void Player::steerLeft(float delta_time) {
   angle_ -= 5.f * delta_time;
@@ -65,6 +66,13 @@ void Player::steerLeft(float delta_time) {
 
 void Player::steerRight(float delta_time) {
   angle_ += 5.f * delta_time;
+}
+
+void Player::update(float delta_time) {
+  rotate();
+  move(delta_time);
+  copyClones();
+  updateBullets(delta_time);
 }
 
 /* PRIVATE */
@@ -126,9 +134,16 @@ void Player::resizeClones() {
   }
 }
 
-void Player::rotatePlayer() {
+void Player::rotate() {
   for (auto i = 0u; i < shape_.size(); ++i) {
     render_shape_[i].x = (shape_[i].x * cosf(angle_) - shape_[i].y * sinf(angle_)) + center_.x;
     render_shape_[i].y = (shape_[i].x * sinf(angle_) + shape_[i].y * cosf(angle_)) + center_.y;
+  }
+}
+
+void Player::updateBullets(float delta_time) {
+  for (auto& bullet: bullets_) {
+    bullet.x += 300.f * delta_time;
+    bullet.y += 300.f * delta_time;
   }
 }

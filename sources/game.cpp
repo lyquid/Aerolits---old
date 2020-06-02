@@ -2,7 +2,7 @@
 
 Game::Game():
   quit_(false),
-  font_color_({255, 255, 255, 255}),
+  font_color_({0xFF, 0xFF, 0xFF, 0xFF}),
   kSCREEN_SIZE_({1024, 768}),
   font_(nullptr),
   main_window_(nullptr),
@@ -10,7 +10,7 @@ Game::Game():
   fps_texture_(nullptr),
   player_(kSCREEN_SIZE_) {}
 
-Game::~Game() { clean(); }
+Game::~Game() { clean(); } // trivial, maybe put in header
 
 void Game::handleEvents() {
   while (SDL_PollEvent(&event_)) {
@@ -25,7 +25,6 @@ void Game::handleEvents() {
         break;
     }
   }
-  // checkKeyStates();
 }
 
 void Game::handleKeyEvents(const SDL_Keycode& key) {
@@ -77,8 +76,8 @@ bool Game::init() {
     return false;
   }
 
-  generateAerolites(8);
-
+  generateAerolites(6);
+  
   return true;
 }
 
@@ -101,16 +100,17 @@ void Game::update() {
   ktp::cleanup(fps_texture_); // <-- is this really necessary? seems to...
   fps_texture_ = renderText(fps_text_.str(), font_, font_color_, 8, *renderer_); // size not working
 
-  /* Aerolites */
   const float delta_time = clock_.restart() / 1000.f;
+
+  /* Aerolites */
   updateAerolites(delta_time);
 
   /* Player */ 
   checkKeyStates(delta_time);
-  player_.move(delta_time);
+  player_.update(delta_time);
  }
 
-/* Private methods below */
+/* PRIVATE */
 
 void Game::checkKeyStates(float delta_time) {
   const Uint8* state = SDL_GetKeyboardState(nullptr);
@@ -137,7 +137,7 @@ void Game::clean() {
 void Game::generateAerolites(unsigned int number) {
   for (auto i = 0u; i < number; ++i) {
     aerolites_.push_back(std::unique_ptr<Aerolite>(new Aerolite(kSCREEN_SIZE_)));
-  } 
+  }
 }
 
 void Game::renderAerolites() {

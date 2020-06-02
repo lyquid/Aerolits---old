@@ -2,58 +2,32 @@
 
 unsigned int Aerolite::count_ = 0u;
 
-Aerolite::Aerolite(float x, float y, float dx, float dy, unsigned int aerolite_size) {
-  size_ = aerolite_size;
-  radius_ = static_cast<float>(size_) / 2.f;
-  generateSquareShape({x, y});
-  delta_.x = dx;
-  delta_.y = dy; 
-  on_edge_ = false;
+Aerolite::Aerolite(float x, float y, float dx, float dy, unsigned int aerolite_size):
+  delta_({dx, dy}),
+  on_edge_(false),
+  size_(aerolite_size),
+  radius_(static_cast<float>(size_) / 2.f) {
+
+  generateCircleShape({x, y});
   ++count_;
 }
 
-Aerolite::Aerolite(SpaceObjectType type, float x, float y, float dx, float dy, unsigned int aerolite_size) {
-  size_ = aerolite_size;
-  radius_ = static_cast<float>(size_) / 2.f;
-  switch (type) {
-    case SpaceObjectType::Square:
-      generateSquareShape({x, y});
-      break;
-    case SpaceObjectType::Round:
-      generateCircleShape({x, y});
-      break;
-  }
-  delta_.x = dx;
-  delta_.y = dy; 
-  on_edge_ = false;
-  ++count_;
-}
+Aerolite::Aerolite(const SDL_Point& screen_size):
+  delta_(generateDelta()),
+  on_edge_(false),
+  size_(generateSize()),
+  radius_(static_cast<float>(size_) / 2.f) {
 
-Aerolite::Aerolite(const SDL_Point& screen_size) {
-  generateSize(60, 140);
-  radius_ = static_cast<float>(size_) / 2.f;
-  // generateSquareShape(generatePosition(screen_size));
   generateCircleShape(generatePosition(screen_size));
-  generateDelta();
-  on_edge_ = false;
-  ++count_;
-}
-
-Aerolite::Aerolite(unsigned int aerolite_size, const SDL_Point& screen_size) {
-  size_ = aerolite_size;
-  radius_ = static_cast<float>(size_) / 2.f;
-  generateSquareShape(generatePosition(screen_size));
-  generateDelta();
-  on_edge_ = false;
   ++count_;
 }
 
 Aerolite::Aerolite(const Aerolite& object) {
-  size_ = object.size_;
-  radius_ = object.radius_;
-  shape_ = object.shape_;
-  delta_ = object.delta_;
+  delta_   = object.delta_;
   on_edge_ = object.on_edge_;
+  shape_   = object.shape_;
+  size_    = object.size_;
+  radius_  = object.radius_;
   ++count_;
 }
 
@@ -87,7 +61,7 @@ void Aerolite::move(float delta_time, const SDL_Point& screen_size) {
     point.x += delta_.x * delta_time;
     point.y += delta_.y * delta_time;
     // if (on_edge_) warpCoordinates(point, screen_size);
-    warpCoordinates(point, screen_size);
+    wrapCoordinates(point, screen_size);
   }
 }
 
@@ -99,12 +73,14 @@ void Aerolite::render(SDL_Renderer& renderer) const {
 
 /* PRIVATE */
 
-void Aerolite::generateDelta() {
+SDL_FPoint Aerolite::generateDelta() {
+  SDL_FPoint delta;
   std::mt19937 generator(std::chrono::system_clock::now().time_since_epoch().count());
   std::uniform_real_distribution<float> distribution_dx(-100.f, 100.f);
-  delta_.x = distribution_dx(generator);
+  delta.x = distribution_dx(generator);
   std::uniform_real_distribution<float> distribution_dy(-100.f, 100.f);
-  delta_.y = distribution_dy(generator);
+  delta.y = distribution_dy(generator);
+  return delta;
 }
 
 SDL_FPoint Aerolite::generatePosition(const SDL_Point& screen_size) {
@@ -114,6 +90,7 @@ SDL_FPoint Aerolite::generatePosition(const SDL_Point& screen_size) {
   where.x = distribution_x(generator);
   std::uniform_real_distribution<float> distribution_y(0.f, screen_size.y);
   where.y = distribution_y(generator);
+  printf("where.x:\t%f\t where.y:\t%f\t\n", where.x, where.y); // without this line g++ shows random aerolites
   return where;
 }
 
@@ -160,17 +137,17 @@ void Aerolite::generateCircleShape(const SDL_FPoint& where) {
   }
 }
 
-void Aerolite::generateSize() {
-  generateSize(70u, 130u);
+unsigned int Aerolite::generateSize() {
+  return generateSize(60u, 140u);
 }
 
-void Aerolite::generateSize(unsigned int min, unsigned int max) {
+unsigned int Aerolite::generateSize(unsigned int min, unsigned int max) {
   std::mt19937 generator(std::chrono::system_clock::now().time_since_epoch().count());
   std::uniform_int_distribution<unsigned int> distribution(min, max);
-  size_ = distribution(generator);
+  return distribution(generator);
 }
 
-void Aerolite::warpCoordinates(SDL_FPoint& point, const SDL_Point& screen_size) {
+void Aerolite::wrapCoordinates(SDL_FPoint& point, const SDL_Point& screen_size) {
   if (point.x < 0) {
     point.x = screen_size.x + point.x;
   } else if (point.x > screen_size.x - 1u) {
