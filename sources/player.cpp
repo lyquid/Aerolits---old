@@ -47,7 +47,9 @@ void Player::render(SDL_Renderer& renderer) const {
   for (const auto& clone: render_shape_clones_) {
     SDL_RenderDrawLinesF(&renderer, clone.data(), shape_.size());
   }
-  SDL_RenderDrawPointsF(&renderer, bullets_.data(), bullets_.size());
+  for (const auto& bullet: bullets_) {
+    SDL_RenderDrawPointF(&renderer, bullet.shape_.x, bullet.shape_.y);
+  }
 }
 
 void Player::thrust(float delta_time) {
@@ -56,8 +58,9 @@ void Player::thrust(float delta_time) {
 }
 
 void Player::shoot(float delta_time) {
-  SDL_FPoint x = {center_.x, center_.y - size_};
-  bullets_.push_back(x);
+  SDL_FPoint where = {center_.x, center_.y - size_};
+  SDL_FPoint delta = {delta_.x, delta_.y};
+  bullets_.push_back({where, delta});
 }
 
 void Player::steerLeft(float delta_time) {
@@ -142,8 +145,17 @@ void Player::rotate() {
 }
 
 void Player::updateBullets(float delta_time) {
-  for (auto& bullet: bullets_) {
-    bullet.x += 300.f * delta_time;
-    bullet.y += 300.f * delta_time;
+  if (!bullets_.empty()) {
+    auto it = bullets_.begin();
+    while (it != bullets_.end()) {
+      it->shape_.x += 30.f * it->delta_.x * delta_time;
+      it->shape_.y += 30.f * it->delta_.y * delta_time;
+      if (it->shape_.x < 0 || it->shape_.x >= kSCREEN_SIZE_.x
+          || it->shape_.y < 0 || it->shape_.y >= kSCREEN_SIZE_.y ) {
+        it = bullets_.erase(it);
+      } else {
+        ++it;
+      }
+    }
   }
 }

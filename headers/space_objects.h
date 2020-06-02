@@ -3,6 +3,7 @@
 
 #include <chrono>
 #include <cmath>
+#include <list>
 #include <random>
 #include <vector>
 #include <SDL.h>
@@ -43,6 +44,19 @@ struct Aerolite {
   void wrapCoordinates(SDL_FPoint& point, const SDL_Point& screen_size);
 };
 
+struct Bullet {
+
+  SDL_FPoint delta_;
+  // std::vector<SDL_FPoint> shape_; // will see
+  SDL_FPoint shape_;
+  float size_;
+
+  Bullet(SDL_FPoint where, SDL_FPoint delta): 
+    size_(5.f),
+    shape_({where.x, where.y}),
+    delta_({delta.x, delta.y}) {}
+};
+
 struct Player {
 
   SDL_FPoint              delta_;
@@ -65,7 +79,7 @@ struct Player {
   float                                size_;
   std::vector<SDL_FPoint>              render_shape_;
   std::vector<std::vector<SDL_FPoint>> render_shape_clones_;
-  std::vector<SDL_FPoint>              bullets_;
+  std::list<Bullet>                    bullets_;
 
   const SDL_Point kSCREEN_SIZE_;
 
