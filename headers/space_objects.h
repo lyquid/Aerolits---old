@@ -19,6 +19,12 @@ struct SpaceObject {
   SDL_FPoint              delta_;
   unsigned int            size_;
   float                   radius_;
+
+  SpaceObject():
+  shape_(),
+  delta_({0.f, 0.f}),
+  size_(0u),
+  radius_(0.f) {}
 };
 
 struct Aerolite : SpaceObject {
@@ -70,8 +76,13 @@ struct Player : SpaceObject {
   SDL_FPoint center_;
   float size_;
   std::vector<SDL_FPoint> render_shape_;
+  std::vector<std::vector<SDL_FPoint>> render_shape_clones_;
 
+  const SDL_Point kSCREEN_SIZE_;
+
+  void copyClones();
   void generatePlayerShape();
+  void resizeClones();
   void rotatePlayer();
 
 };

@@ -44,8 +44,9 @@
 		<Unit filename="include/resources_path.h" />
 		<Unit filename="include/timer.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="sources/aerolite.cpp" />
 		<Unit filename="sources/game.cpp" />
-		<Unit filename="sources/space_objects.cpp" />
+		<Unit filename="sources/player.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />
