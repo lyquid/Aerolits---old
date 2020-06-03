@@ -8,6 +8,8 @@
 #include <vector>
 #include <SDL.h>
 
+#include "../include/timer.h"
+
 enum class SpaceObjectType { 
   Square,
   Round,
@@ -79,7 +81,8 @@ struct Player {
   float                                size_;
   std::vector<SDL_FPoint>              render_shape_;
   std::vector<std::vector<SDL_FPoint>> render_shape_clones_;
-  std::list<Bullet>                    bullets_;
+  std::vector<Bullet>                  bullets_;
+  ktp::Timer                           shooting_timer_;
 
   const SDL_Point kSCREEN_SIZE_;
 
