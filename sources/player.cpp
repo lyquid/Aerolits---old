@@ -12,7 +12,7 @@ Player::Player(const SDL_Point& screen_size):
   render_shape_.resize(shape_.size());
   render_shape_clones_.resize(8u);
   resizeClones();
-  bullets_.reserve(20);
+  bullets_.reserve(30);
   shooting_timer_.start();
 }
 
@@ -50,7 +50,9 @@ void Player::render(SDL_Renderer& renderer) const {
     SDL_RenderDrawLinesF(&renderer, clone.data(), shape_.size());
   }
   for (const auto& bullet: bullets_) {
-    SDL_RenderDrawPointF(&renderer, bullet.shape_.x, bullet.shape_.y);
+    for (const auto& point: bullet.shape_ ) {
+      SDL_RenderDrawPointF(&renderer, point.x, point.y);
+    }
   }
 }
 
@@ -152,15 +154,16 @@ void Player::updateBullets(float delta_time) {
   if (!bullets_.empty()) {
     auto it = bullets_.begin();
     while (it != bullets_.end()) {
-      it->shape_.x += 10.f * it->delta_.x * delta_time;
-      it->shape_.y += 10.f * it->delta_.y * delta_time;
-      if (it->shape_.x < 0 || it->shape_.x >= kSCREEN_SIZE_.x
-          || it->shape_.y < 0 || it->shape_.y >= kSCREEN_SIZE_.y ) {
+      for (auto& point: it->shape_) {
+        point.x += 10.f * it->delta_.x * delta_time;
+        point.y += 10.f * it->delta_.y * delta_time;
+      }
+      if (it->shape_.front().x < 0 || it->shape_.front().x >= kSCREEN_SIZE_.x
+       || it->shape_.front().y < 0 || it->shape_.front().y >= kSCREEN_SIZE_.y ) {
         it = bullets_.erase(it);
       } else {
         ++it;
       }
     }
   }
-  printf("bullets: %d\n", bullets_.size());
 }

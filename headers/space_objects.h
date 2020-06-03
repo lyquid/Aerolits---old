@@ -49,14 +49,37 @@ struct Aerolite {
 struct Bullet {
 
   SDL_FPoint delta_;
-  // std::vector<SDL_FPoint> shape_; // will see
-  SDL_FPoint shape_;
+  std::vector<SDL_FPoint> shape_;
   float size_;
 
   Bullet(SDL_FPoint where, SDL_FPoint delta): 
     size_(5.f),
-    shape_({where.x, where.y}),
-    delta_({delta.x, delta.y}) {}
+    delta_({delta.x, delta.y}) {
+
+    shape_.resize(9);
+    /* clockwise square 
+        8  1  2
+        7  0  3
+        6  5  4    */
+    shape_[0].x = where.x;
+    shape_[0].y = where.y;
+    shape_[1].x = where.x;
+    shape_[1].y = where.y - 1;
+    shape_[2].x = where.x + 1;
+    shape_[2].y = where.y - 1;
+    shape_[3].x = where.x + 1;
+    shape_[3].y = where.y;
+    shape_[4].x = where.x + 1;
+    shape_[4].y = where.y + 1;
+    shape_[5].x = where.x;
+    shape_[5].y = where.y + 1;
+    shape_[6].x = where.x - 1;
+    shape_[6].y = where.y + 1;
+    shape_[7].x = where.x - 1;
+    shape_[7].y = where.y;
+    shape_[8].x = where.x - 1;
+    shape_[8].y = where.y - 1;
+  }
 };
 
 struct Player {
