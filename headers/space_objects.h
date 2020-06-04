@@ -4,10 +4,12 @@
 #include <chrono>
 #include <cmath>
 #include <list>
+#include <memory>
 #include <random>
 #include <vector>
 #include <SDL.h>
 
+#include "../include/collisions.h"
 #include "../include/timer.h"
 
 enum class SpaceObjectType { 
@@ -20,6 +22,7 @@ enum class SpaceObjectType {
 struct Aerolite {
   
   static unsigned int     count_;
+  SDL_FPoint              center_;
   SDL_FPoint              delta_;
   bool                    on_edge_;
   std::vector<SDL_FPoint> shape_;
@@ -50,10 +53,8 @@ struct Bullet {
 
   SDL_FPoint delta_;
   std::vector<SDL_FPoint> shape_;
-  float size_;
 
   Bullet(SDL_FPoint where, SDL_FPoint delta): 
-    size_(5.f),
     delta_({delta.x, delta.y}) {
 
     shape_.resize(9);
@@ -95,7 +96,7 @@ struct Player {
   void shoot(float delta_time);
   void steerLeft(float delta_time);
   void steerRight(float delta_time);
-  void update(float delta_time);
+  void update(float delta_time, std::vector<std::unique_ptr<Aerolite>>& aerolites);
  
  private:
 
@@ -104,8 +105,8 @@ struct Player {
   float                                size_;
   std::vector<SDL_FPoint>              render_shape_;
   std::vector<std::vector<SDL_FPoint>> render_shape_clones_;
-  std::vector<Bullet>                  bullets_;
   ktp::Timer                           shooting_timer_;
+  std::vector<Bullet>                  bullets_;
 
   const SDL_Point kSCREEN_SIZE_;
 
@@ -114,7 +115,7 @@ struct Player {
   void move(float delta_time);
   void resizeClones();
   void rotate();
-  void updateBullets(float delta_time);
+  void updateBullets(float delta_time, std::vector<std::unique_ptr<Aerolite>>& aerolites);
 };
 
 #endif // AEROLITS_HEADERS_SPACE_OBJECTS_H_

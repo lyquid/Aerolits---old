@@ -3,26 +3,29 @@
 unsigned int Aerolite::count_ = 0u;
 
 Aerolite::Aerolite(float x, float y, float dx, float dy, unsigned int aerolite_size):
+  center_({x, y}),
   delta_({dx, dy}),
   on_edge_(false),
   size_(aerolite_size),
   radius_(static_cast<float>(size_) / 2.f) {
 
-  generateCircleShape({x, y});
+  generateCircleShape(center_);
   ++count_;
 }
 
 Aerolite::Aerolite(const SDL_Point& screen_size):
+  center_(generatePosition(screen_size)),
   delta_(generateDelta()),
   on_edge_(false),
   size_(generateSize()),
   radius_(static_cast<float>(size_) / 2.f) {
 
-  generateCircleShape(generatePosition(screen_size));
+  generateCircleShape(center_);
   ++count_;
 }
 
 Aerolite::Aerolite(const Aerolite& object) {
+  center_  = object.center_;
   delta_   = object.delta_;
   on_edge_ = object.on_edge_;
   shape_   = object.shape_;
@@ -57,6 +60,9 @@ void Aerolite::move(float delta_time, const SDL_Point& screen_size) {
     on_edge_ = true;
   } */
 
+  center_.x += delta_.x * delta_time;
+  center_.y += delta_.y * delta_time;
+  wrapCoordinates(center_, screen_size);
   for (auto& point: shape_) {
     point.x += delta_.x * delta_time;
     point.y += delta_.y * delta_time;

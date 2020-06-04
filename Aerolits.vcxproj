@@ -154,6 +154,7 @@
     <ClInclude Include="headers\game.h" />
     <ClInclude Include="headers\space_objects.h" />
     <ClInclude Include="include\cleanup.h" />
+    <ClInclude Include="include\collisions.h" />
     <ClInclude Include="include\fps.h" />
     <ClInclude Include="include\log.h" />
     <ClInclude Include="include\resources_path.h" />

@@ -20,7 +20,7 @@
 class Game {
  public:
   Game();
-  ~Game();
+  ~Game() { clean(); }
 
  public: 
   void handleEvents();

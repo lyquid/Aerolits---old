@@ -4,13 +4,15 @@ Game::Game():
   quit_(false),
   font_color_({0xFF, 0xFF, 0xFF, 0xFF}),
   kSCREEN_SIZE_({1024, 768}),
+  event_(), 
   font_(nullptr),
   main_window_(nullptr),
   renderer_(nullptr),
   fps_texture_(nullptr),
-  player_(kSCREEN_SIZE_) {}
+  player_(kSCREEN_SIZE_) {
 
-Game::~Game() { clean(); } // trivial, maybe put in header
+  aerolites_.reserve(50);
+}
 
 void Game::handleEvents() {
   while (SDL_PollEvent(&event_)) {
@@ -104,10 +106,11 @@ void Game::update() {
 
   /* Aerolites */
   updateAerolites(delta_time);
+  // missing check collisions between aerolites
 
   /* Player */ 
   checkKeyStates(delta_time);
-  player_.update(delta_time);
+  player_.update(delta_time, aerolites_);  
  }
 
 /* PRIVATE */

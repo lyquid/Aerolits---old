@@ -77,11 +77,11 @@ void Player::steerRight(float delta_time) {
   angle_ += 5.f * delta_time;
 }
 
-void Player::update(float delta_time) {
+void Player::update(float delta_time, std::vector<std::unique_ptr<Aerolite>>& aerolites) {
   rotate();
   move(delta_time);
   copyClones();
-  updateBullets(delta_time);
+  updateBullets(delta_time, aerolites);
 }
 
 /* PRIVATE */
@@ -150,19 +150,34 @@ void Player::rotate() {
   }
 }
 
-void Player::updateBullets(float delta_time) {
+void Player::updateBullets(float delta_time, std::vector<std::unique_ptr<Aerolite>>& aerolites) {
   if (!bullets_.empty()) {
-    auto it = bullets_.begin();
-    while (it != bullets_.end()) {
-      for (auto& point: it->shape_) {
-        point.x += 10.f * it->delta_.x * delta_time;
-        point.y += 10.f * it->delta_.y * delta_time;
+    auto bullet = bullets_.begin();
+    while (bullet != bullets_.end()) {
+      // update the bullet's shape
+      for (auto& point: bullet->shape_) {
+        point.x += 10.f * bullet->delta_.x * delta_time;
+        point.y += 10.f * bullet->delta_.y * delta_time;
       }
-      if (it->shape_.front().x < 0 || it->shape_.front().x >= kSCREEN_SIZE_.x
-       || it->shape_.front().y < 0 || it->shape_.front().y >= kSCREEN_SIZE_.y ) {
-        it = bullets_.erase(it);
+      // check if bullet is off screen
+      if (bullet->shape_.front().x < 0 || bullet->shape_.front().x >= kSCREEN_SIZE_.x
+       || bullet->shape_.front().y < 0 || bullet->shape_.front().y >= kSCREEN_SIZE_.y ) {
+        bullet = bullets_.erase(bullet);
       } else {
-        ++it;
+        // check collisions with aerolites
+        bool collision = false;
+        auto aerolite = aerolites.begin();
+        while (!collision && aerolite != aerolites.end()) {
+          collision = ktp::isPointInsideCircle((*aerolite)->center_.x, (*aerolite)->center_.y, (*aerolite)->radius_, bullet->shape_.front().x, bullet->shape_.front().y);
+          // collision = ktp::checkCirclesCollision(0.f, bullet->shape_.front().x, bullet->shape_.front().y, (*aerolite)->radius_, (*aerolite)->shape_.front().x, (*aerolite)->shape_.front().y);
+          if (collision) {
+            // delete *aerolite;
+            aerolite = aerolites.erase(aerolite);
+          } else {
+            ++aerolite;
+          }
+        }
+        collision ? bullet = bullets_.erase(bullet) : ++bullet;
       }
     }
   }
