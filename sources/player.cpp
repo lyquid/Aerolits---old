@@ -2,10 +2,9 @@
 
 Player::Player(const SDL_Point& screen_size):
   alive_(true),
-  delta_({0.f, 0.f}),
-  radius_(0.f),
   angle_(0.f), 
   center_({screen_size.x / 2.f, screen_size.y / 2.f}),
+  delta_({0.f, 0.f}),
   size_(40.f),
   kSCREEN_SIZE_({screen_size.x, screen_size.y}) {
 
@@ -59,10 +58,9 @@ void Player::render(SDL_Renderer& renderer) const {
 
 void Player::reset() {
   alive_ = true;
-  delta_ = {0.f, 0.f};
-  radius_ = 0.f;
   angle_ = 0.f;
   center_ = {kSCREEN_SIZE_.x / 2.f, kSCREEN_SIZE_.y / 2.f};
+  delta_ = {0.f, 0.f};
   size_ = 40.f;
   copyClones();
   shooting_timer_.start();

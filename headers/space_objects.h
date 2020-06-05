@@ -85,10 +85,6 @@ struct Bullet {
 
 struct Player {
 
-  SDL_FPoint              delta_;
-  float                   radius_;
-  std::vector<SDL_FPoint> shape_;
-
   Player(const SDL_Point& screen_size);
 
   bool isAlive() { return alive_; }
@@ -105,9 +101,11 @@ struct Player {
   bool                                 alive_;
   float                                angle_;
   SDL_FPoint                           center_;
+  SDL_FPoint                           delta_;
   float                                size_;
   std::vector<SDL_FPoint>              render_shape_;
   std::vector<std::vector<SDL_FPoint>> render_shape_clones_;
+  std::vector<SDL_FPoint>              shape_;
   ktp::Timer                           shooting_timer_;
   std::vector<Bullet>                  bullets_;
 
