@@ -5,33 +5,40 @@
 
 namespace ktp {
 
-static bool checkCirclesCollision(float a_radius, float a_x, float a_y, float b_radius, float b_x, float b_y);
-static double distanceSquared(float x1, float y1, float x2, float y2);
-template <typename T> static bool isPointInsideCircle(float cx, float cy, float radius, float x, float y);
+template <typename T> static bool checkCirclesCollision(T a_radius, T a_x, T a_y, T b_radius, T b_x, T b_y);
+template <typename T> static bool checkCirclesCollisionSQRT(T a_radius, T a_x, T a_y, T b_radius, T b_x, T b_y);
+template <typename T> static double distanceSquared(T x1, T y1, T x2, T y2);
+template <typename T> static bool isPointInsideCircle(T circle_x, T circle_y, T radius, T point_x, T point_y);
 
 /* DEFINITIONS BELOW */
 
-bool checkCirclesCollision(float a_radius, float a_x, float a_y, float b_radius, float b_x, float b_y) {
+template <typename T>
+bool checkCirclesCollision(T a_radius, T a_x, T a_y, T b_radius, T b_x, T b_y) {
   auto radii_sqrt = a_radius + b_radius;
   radii_sqrt *= radii_sqrt;
   if (distanceSquared(a_x, a_y, b_x, b_y) < radii_sqrt) return true;
   return false;
 }
 
-/* From Lazyfoo:
+template <typename T>
+bool checkCirclesCollisionSQRT(T a_radius, T a_x, T a_y, T b_radius, T b_x, T b_y) {
+  return isPointInsideCircle(a_x, a_y, a_radius + b_radius, b_x, b_y);
+}
+
+/* From LazyFoo:
  * Here is the distance squared function. It's just a distance 
  * calculation ( squareRoot( x^2 + y^2 ) ) without the square root.
 */
-double distanceSquared(float x1, float y1, float x2, float y2){
-  auto x = x2 - x1;
-  auto y = y2 - y1;
+template <typename T>
+double distanceSquared(T x1, T y1, T x2, T y2) {
+  double x = static_cast<double>(x2) - static_cast<double>(x1);
+  double y = static_cast<double>(y2) - static_cast<double>(y1);
   return x * x + y * y;
 }
 
-/* From olc */
 template <typename T>
-bool isPointInsideCircle(T cx, T cy, T radius, T x, T y) {
-  return std::sqrt((x-cx)*(x-cx) + (y-cy)*(y-cy)) < radius;
+bool isPointInsideCircle(T circle_x, T circle_y, T radius, T point_x, T point_y) {
+  return std::sqrt((point_x - circle_x)*(point_x - circle_x) + (point_y - circle_y)*(point_y - circle_y)) < radius;
 }
 
 } // namespace ktp

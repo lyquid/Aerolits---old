@@ -91,15 +91,18 @@ struct Player {
 
   Player(const SDL_Point& screen_size);
 
+  bool isAlive() { return alive_; }
   void render(SDL_Renderer& renderer) const;
-  void thrust(float delta_time);
+  void reset();
   void shoot(float delta_time);
-  void steerLeft(float delta_time);
-  void steerRight(float delta_time);
+  void steerLeft(float delta_time) { angle_ -= 5.f * delta_time; }
+  void steerRight(float delta_time) { angle_ += 5.f * delta_time; }
+  void thrust(float delta_time);
   void update(float delta_time, std::vector<std::unique_ptr<Aerolite>>& aerolites);
  
  private:
 
+  bool                                 alive_;
   float                                angle_;
   SDL_FPoint                           center_;
   float                                size_;
@@ -110,6 +113,7 @@ struct Player {
 
   const SDL_Point kSCREEN_SIZE_;
 
+  bool checkAerolitesCollisions(const std::vector<std::unique_ptr<Aerolite>>& aerolites);
   void copyClones();
   void generatePlayerShape();
   void move(float delta_time);

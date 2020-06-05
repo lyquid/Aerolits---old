@@ -1,6 +1,7 @@
 #include "../headers/space_objects.h"
 
-Player::Player(const SDL_Point& screen_size): 
+Player::Player(const SDL_Point& screen_size):
+  alive_(true),
   delta_({0.f, 0.f}),
   radius_(0.f),
   angle_(0.f), 
@@ -56,9 +57,15 @@ void Player::render(SDL_Renderer& renderer) const {
   }
 }
 
-void Player::thrust(float delta_time) {
-  delta_.x +=  std::sin(angle_) * 200.f * delta_time;
-  delta_.y += -std::cos(angle_) * 200.f * delta_time;
+void Player::reset() {
+  alive_ = true;
+  delta_ = {0.f, 0.f};
+  radius_ = 0.f;
+  angle_ = 0.f;
+  center_ = {kSCREEN_SIZE_.x / 2.f, kSCREEN_SIZE_.y / 2.f};
+  size_ = 40.f;
+  copyClones();
+  shooting_timer_.start();
 }
 
 void Player::shoot(float delta_time) {
@@ -69,22 +76,29 @@ void Player::shoot(float delta_time) {
   }
 }
 
-void Player::steerLeft(float delta_time) {
-  angle_ -= 5.f * delta_time;
-}
-
-void Player::steerRight(float delta_time) {
-  angle_ += 5.f * delta_time;
+void Player::thrust(float delta_time) {
+  delta_.x +=  std::sin(angle_) * 200.f * delta_time;
+  delta_.y += -std::cos(angle_) * 200.f * delta_time;
 }
 
 void Player::update(float delta_time, std::vector<std::unique_ptr<Aerolite>>& aerolites) {
   rotate();
   move(delta_time);
+  alive_ = !checkAerolitesCollisions(aerolites);
   copyClones();
   updateBullets(delta_time, aerolites);
 }
 
 /* PRIVATE */
+
+bool Player::checkAerolitesCollisions(const std::vector<std::unique_ptr<Aerolite>>& aerolites) {
+  for (const auto& aerolite: aerolites) {
+    if (ktp::checkCirclesCollisionSQRT(size_ / 2.f, center_.x, center_.y, aerolite->radius_, aerolite->center_.x, aerolite->center_.y)) {
+      return true;
+    }
+  }
+  return false;
+}
 
 void Player::copyClones() {
   for (auto i = 0u; i < render_shape_clones_.size(); ++i) {
@@ -169,13 +183,8 @@ void Player::updateBullets(float delta_time, std::vector<std::unique_ptr<Aerolit
         auto aerolite = aerolites.begin();
         while (!collision && aerolite != aerolites.end()) {
           collision = ktp::isPointInsideCircle((*aerolite)->center_.x, (*aerolite)->center_.y, (*aerolite)->radius_, bullet->shape_.front().x, bullet->shape_.front().y);
-          // collision = ktp::checkCirclesCollision(0.f, bullet->shape_.front().x, bullet->shape_.front().y, (*aerolite)->radius_, (*aerolite)->shape_.front().x, (*aerolite)->shape_.front().y);
-          if (collision) {
-            // delete *aerolite;
-            aerolite = aerolites.erase(aerolite);
-          } else {
-            ++aerolite;
-          }
+          // collision = ktp::checkCirclesCollision(1.f, bullet->shape_.front().x, bullet->shape_.front().y, (*aerolite)->radius_, (*aerolite)->shape_.front().x, (*aerolite)->shape_.front().y);
+          collision ? aerolite = aerolites.erase(aerolite) : ++aerolite;
         }
         collision ? bullet = bullets_.erase(bullet) : ++bullet;
       }

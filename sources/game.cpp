@@ -109,8 +109,12 @@ void Game::update() {
   // missing check collisions between aerolites
 
   /* Player */ 
-  checkKeyStates(delta_time);
-  player_.update(delta_time, aerolites_);  
+  if (player_.isAlive()) {
+    checkKeyStates(delta_time);
+    player_.update(delta_time, aerolites_);  
+  } else {
+    player_.reset();
+  }
  }
 
 /* PRIVATE */
