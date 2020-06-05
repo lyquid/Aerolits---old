@@ -3,7 +3,6 @@
 
 #include <chrono>
 #include <cmath>
-#include <list>
 #include <memory>
 #include <random>
 #include <vector>
@@ -111,7 +110,8 @@ struct Player {
 
   const SDL_Point kSCREEN_SIZE_;
 
-  bool checkAerolitesCollisions(const std::vector<std::unique_ptr<Aerolite>>& aerolites);
+  bool checkPlayerCollisions(const std::vector<std::unique_ptr<Aerolite>>& aerolites);
+  bool checkBulletsCollisions(const Bullet& bullet, std::vector<std::unique_ptr<Aerolite>>& aerolites);
   void copyClones();
   void generatePlayerShape();
   void move(float delta_time);

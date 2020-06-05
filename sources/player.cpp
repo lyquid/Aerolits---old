@@ -82,16 +82,26 @@ void Player::thrust(float delta_time) {
 void Player::update(float delta_time, std::vector<std::unique_ptr<Aerolite>>& aerolites) {
   rotate();
   move(delta_time);
-  alive_ = !checkAerolitesCollisions(aerolites);
+  alive_ = !checkPlayerCollisions(aerolites);
   copyClones();
-  updateBullets(delta_time, aerolites);
+  if (!bullets_.empty()) updateBullets(delta_time, aerolites);
 }
 
 /* PRIVATE */
 
-bool Player::checkAerolitesCollisions(const std::vector<std::unique_ptr<Aerolite>>& aerolites) {
+bool Player::checkPlayerCollisions(const std::vector<std::unique_ptr<Aerolite>>& aerolites) {
   for (const auto& aerolite: aerolites) {
     if (ktp::checkCirclesCollisionSQRT(size_ / 2.f, center_.x, center_.y, aerolite->radius_, aerolite->center_.x, aerolite->center_.y)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool Player::checkBulletsCollisions(const Bullet& bullet, std::vector<std::unique_ptr<Aerolite>>& aerolites) {
+  for (auto aerolite = aerolites.begin(); aerolite != aerolites.end(); ++aerolite) {
+    if (ktp::isPointInsideCircle((*aerolite)->center_.x, (*aerolite)->center_.y, (*aerolite)->radius_, bullet.shape_.front().x, bullet.shape_.front().y)) {
+      aerolite = aerolites.erase(aerolite);
       return true;
     }
   }
@@ -163,29 +173,20 @@ void Player::rotate() {
 }
 
 void Player::updateBullets(float delta_time, std::vector<std::unique_ptr<Aerolite>>& aerolites) {
-  if (!bullets_.empty()) {
-    auto bullet = bullets_.begin();
-    while (bullet != bullets_.end()) {
-      // update the bullet's shape
-      for (auto& point: bullet->shape_) {
-        point.x += 10.f * bullet->delta_.x * delta_time;
-        point.y += 10.f * bullet->delta_.y * delta_time;
-      }
-      // check if bullet is off screen
-      if (bullet->shape_.front().x < 0 || bullet->shape_.front().x >= kSCREEN_SIZE_.x
-       || bullet->shape_.front().y < 0 || bullet->shape_.front().y >= kSCREEN_SIZE_.y ) {
-        bullet = bullets_.erase(bullet);
-      } else {
-        // check collisions with aerolites
-        bool collision = false;
-        auto aerolite = aerolites.begin();
-        while (!collision && aerolite != aerolites.end()) {
-          collision = ktp::isPointInsideCircle((*aerolite)->center_.x, (*aerolite)->center_.y, (*aerolite)->radius_, bullet->shape_.front().x, bullet->shape_.front().y);
-          // collision = ktp::checkCirclesCollision(1.f, bullet->shape_.front().x, bullet->shape_.front().y, (*aerolite)->radius_, (*aerolite)->shape_.front().x, (*aerolite)->shape_.front().y);
-          collision ? aerolite = aerolites.erase(aerolite) : ++aerolite;
-        }
-        collision ? bullet = bullets_.erase(bullet) : ++bullet;
-      }
+  auto bullet = bullets_.begin();
+  while (bullet != bullets_.end()) {
+    // update bullet's shape
+    for (auto& point: bullet->shape_) {
+      point.x += 10.f * bullet->delta_.x * delta_time;
+      point.y += 10.f * bullet->delta_.y * delta_time;
+    }
+    // check if bullet is off screen
+    if (bullet->shape_.front().x < 0 || bullet->shape_.front().x >= kSCREEN_SIZE_.x
+     || bullet->shape_.front().y < 0 || bullet->shape_.front().y >= kSCREEN_SIZE_.y ) {
+      bullet = bullets_.erase(bullet);
+    } else {
+      // check collisions with aerolites
+      checkBulletsCollisions(*bullet, aerolites) ? bullet = bullets_.erase(bullet) : ++bullet;
     }
   }
 }
