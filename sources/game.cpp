@@ -2,7 +2,7 @@
 
 Game::Game():
   quit_(false),
-  font_color_({0xFF, 0xFF, 0xFF, 0xFF}),
+  kFONT_COLOR_({0xFF, 0xFF, 0xFF, 0xFF}),
   kSCREEN_SIZE_({1024, 768}),
   event_(), 
   font_(nullptr),
@@ -100,13 +100,12 @@ void Game::update() {
   fps_text_.str(std::string());
   fps_text_ << fps_.average();
   ktp::cleanup(fps_texture_); // <-- is this really necessary? seems to...
-  fps_texture_ = renderText(fps_text_.str(), font_, font_color_, 8, *renderer_); // size not working
+  fps_texture_ = renderText(fps_text_.str(), font_, kFONT_COLOR_, 8, *renderer_); // size not working
 
   const float delta_time = clock_.restart() / 1000.f;
 
   /* Aerolites */
-  updateAerolites(delta_time);
-  // missing check collisions between aerolites
+  Aerolite::updateAerolites(delta_time, kSCREEN_SIZE_, aerolites_);
 
   /* Player */ 
   if (player_.isAlive()) {
@@ -145,7 +144,9 @@ void Game::generateAerolites(unsigned int number) {
   for (auto i = 0u; i < number; ++i) {
     aerolites_.push_back(std::unique_ptr<Aerolite>(new Aerolite(kSCREEN_SIZE_)));
   }
-}
+  /* aerolites_.push_back(std::unique_ptr<Aerolite>(new Aerolite(100, 100,  250, 0, 90)));
+  aerolites_.push_back(std::unique_ptr<Aerolite>(new Aerolite(600, 140, -200, 0, 10)));  */
+} 
 
 void Game::renderAerolites() {
   SDL_SetRenderDrawColor(renderer_, 0xFF, 0xFF, 0xFF, 0xFF);
@@ -198,20 +199,4 @@ void Game::renderTexture(SDL_Texture* tex, SDL_Renderer& renderer, int x, int y)
 	// Query the texture to get its width and height to use
 	SDL_QueryTexture(tex, NULL, NULL, &dst.w, &dst.h);
 	SDL_RenderCopy(&renderer, tex, NULL, &dst);
-}
-
-void Game::updateAerolites(float delta_time) {
-  for (auto& aerolite: aerolites_ ) {
-    aerolite->move(delta_time, kSCREEN_SIZE_, aerolites_);
-  }
-  /* auto i = 0;
-  for (auto it_move = aerolites_.begin(); it_move != aerolites_.end(); ++it_move) {
-    it_move->get()->move(delta_time, kSCREEN_SIZE_);
-    for (auto it_col = it_move + 1; it_col != aerolites_.end(); ++it_col) {
-      // check collisions
-      // it_move->get()->checkCollision(it_col->get());
-      ++i;
-    }
-  } */
-  // ktp::logMessage("checked collisions: " + std::to_string(i));
 }

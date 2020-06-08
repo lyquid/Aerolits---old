@@ -23,29 +23,26 @@ struct Aerolite {
   static unsigned int     count_;
   SDL_FPoint              center_;
   SDL_FPoint              delta_;
-  bool                    on_edge_;
   std::vector<SDL_FPoint> shape_;
   unsigned int            size_;
   float                   radius_;
+  float                   mass_;
   
   Aerolite(const SDL_Point& screen_size);
   Aerolite(const Aerolite& object);
   Aerolite(float x, float y, float dx, float dy, unsigned int aerolite_size);
   ~Aerolite() { --count_; }
 
-  bool checkCollision(const Aerolite& target);
-  void move(float delta_time, const SDL_Point& screen_size);
   void render(SDL_Renderer& renderer) const;
+  static void updateAerolites(float delta_time, const SDL_Point& screen_size, std::vector<std::unique_ptr<Aerolite>>& aerolites);
 
  private:
-  
   SDL_FPoint generateDelta();
   SDL_FPoint generatePosition(const SDL_Point& screen_size);
   void generateSquareShape(const SDL_FPoint& where);
   void generateCircleShape(const SDL_FPoint& where);
   unsigned int generateSize();
   unsigned int generateSize(unsigned int min, unsigned int max);
-  void wrapCoordinates(SDL_FPoint& point, const SDL_Point& screen_size);
 };
 
 struct Bullet {

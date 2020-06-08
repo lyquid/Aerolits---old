@@ -5,9 +5,9 @@ unsigned int Aerolite::count_ = 0u;
 Aerolite::Aerolite(float x, float y, float dx, float dy, unsigned int aerolite_size):
   center_({x, y}),
   delta_({dx, dy}),
-  on_edge_(false),
   size_(aerolite_size),
-  radius_(static_cast<float>(size_) / 2.f) {
+  radius_(static_cast<float>(size_) / 2.f),
+  mass_(radius_ * 10.f) {
 
   generateCircleShape(center_);
   ++count_;
@@ -16,9 +16,9 @@ Aerolite::Aerolite(float x, float y, float dx, float dy, unsigned int aerolite_s
 Aerolite::Aerolite(const SDL_Point& screen_size):
   center_(generatePosition(screen_size)),
   delta_(generateDelta()),
-  on_edge_(false),
   size_(generateSize()),
-  radius_(static_cast<float>(size_) / 2.f) {
+  radius_(static_cast<float>(size_) / 2.f),
+  mass_(radius_ * 10.f) {
 
   generateCircleShape(center_);
   ++count_;
@@ -27,54 +27,18 @@ Aerolite::Aerolite(const SDL_Point& screen_size):
 Aerolite::Aerolite(const Aerolite& object) {
   center_  = object.center_;
   delta_   = object.delta_;
-  on_edge_ = object.on_edge_;
   shape_   = object.shape_;
   size_    = object.size_;
   radius_  = object.radius_;
+  mass_    = object.mass_;
   ++count_;
-}
-
-bool Aerolite::checkCollision(const Aerolite& target) {
-  bool collided = false;
-
-  return collided;
-}
-
-void Aerolite::move(float delta_time, const SDL_Point& screen_size) {
-  // trying to just wapr coordinates only on shapes at the edges
-  // not working properly
-  /* SDL_Rect test;
-  test.x = shape_.front().x + delta_.x * delta_time;
-  test.y = shape_.front().y + delta_.y * delta_time;
-  test.h = size_;
-  test.w = size_;
-  on_edge_ = false;
-
-  if (test.x < 0.f) {
-    on_edge_ = true;
-  } else if (test.x + test.w > screen_size.x - 1) {
-    on_edge_ = true;
-  } else if (test.y < 0.f) {
-    on_edge_ = true;
-  } else  if (test.y + test.h > screen_size.y - 1) {
-    on_edge_ = true;
-  } */
-
-  center_.x += delta_.x * delta_time;
-  center_.y += delta_.y * delta_time;
-  wrapCoordinates(center_, screen_size);
-  for (auto& point: shape_) {
-    point.x += delta_.x * delta_time;
-    point.y += delta_.y * delta_time;
-    // if (on_edge_) warpCoordinates(point, screen_size);
-    wrapCoordinates(point, screen_size);
-  }
 }
 
 void Aerolite::render(SDL_Renderer& renderer) const {
   for (const auto& point: shape_) {
     SDL_RenderDrawPointF(&renderer, point.x, point.y);
   }
+  SDL_RenderDrawPointF(&renderer, center_.x, center_.y);
 }
 
 /* PRIVATE */
@@ -118,6 +82,7 @@ void Aerolite::generateCircleShape(const SDL_FPoint& where) {
   int32_t tx = 1;
   int32_t ty = 1;
   int32_t error = (tx - diameter);
+  shape_.clear();
 
   while (x >= y) {
     shape_.push_back({where.x + x, where.y - y});
@@ -144,7 +109,7 @@ void Aerolite::generateCircleShape(const SDL_FPoint& where) {
 }
 
 unsigned int Aerolite::generateSize() {
-  return generateSize(60u, 140u);
+  return generateSize(60u, 200u);
 }
 
 unsigned int Aerolite::generateSize(unsigned int min, unsigned int max) {
@@ -153,16 +118,52 @@ unsigned int Aerolite::generateSize(unsigned int min, unsigned int max) {
   return distribution(generator);
 }
 
-void Aerolite::wrapCoordinates(SDL_FPoint& point, const SDL_Point& screen_size) {
-  if (point.x < 0) {
-    point.x = screen_size.x + point.x;
-  } else if (point.x > screen_size.x - 1u) {
-    point.x = point.x - screen_size.x;
+void Aerolite::updateAerolites(float delta_time, const SDL_Point& screen_size, std::vector<std::unique_ptr<Aerolite>>& aerolites) {
+  // move all
+  for (auto i = 0u; i < aerolites.size(); ++i) {
+    aerolites[i]->center_.x += aerolites[i]->delta_.x * delta_time;
+    aerolites[i]->center_.y += aerolites[i]->delta_.y * delta_time;
   }
 
-  if (point.y < 0) {
-    point.y = screen_size.y + point.y;
-  } else if (point.y > screen_size.y - 1u) {
-    point.y = point.y - screen_size.y;
+  bool aero_collision = false;
+
+  // check all
+  for (auto i = 0u; i < aerolites.size(); ++i) {
+    aero_collision = false;
+    for (auto j = i; j < aerolites.size(); ++j) {
+      if (i != j) {
+        bool aabb_check = ktp::checkCircleAABBCollision(aerolites[i]->radius_, aerolites[i]->center_.x, aerolites[i]->center_.y,
+                                                        aerolites[j]->radius_, aerolites[j]->center_.x, aerolites[j]->center_.y);
+        if (aabb_check) {
+          aero_collision = ktp::checkCirclesCollisionSQRT(aerolites[i]->radius_,aerolites[i]->center_.x, aerolites[i]->center_.y, 
+                                                          aerolites[j]->radius_, aerolites[j]->center_.x, aerolites[j]->center_.y);
+          if (aero_collision) {
+                  
+            float distance = sqrtf((aerolites[i]->center_.x - aerolites[j]->center_.x)*(aerolites[i]->center_.x - aerolites[j]->center_.x) + (aerolites[i]->center_.y - aerolites[j]->center_.y) * (aerolites[i]->center_.y - aerolites[j]->center_.y));
+            
+            float nx = (aerolites[j]->center_.x - aerolites[i]->center_.x) / distance;
+            float ny = (aerolites[j]->center_.y - aerolites[i]->center_.y) / distance;
+
+            float kx = (aerolites[i]->delta_.x - aerolites[j]->delta_.x);
+            float ky = (aerolites[i]->delta_.y - aerolites[j]->delta_.y);
+            float p = 2.f * (nx * kx + ny * ky) / (aerolites[i]->mass_ + aerolites[j]->mass_);
+
+            aerolites[i]->delta_.x = aerolites[i]->delta_.x - p * aerolites[j]->mass_ * nx;
+            aerolites[i]->delta_.y = aerolites[i]->delta_.y - p * aerolites[j]->mass_ * ny;
+            aerolites[j]->delta_.x = aerolites[j]->delta_.x + p * aerolites[i]->mass_ * nx;
+            aerolites[j]->delta_.y = aerolites[j]->delta_.y + p * aerolites[i]->mass_ * ny;
+
+            // move by new delta
+            aerolites[i]->center_.x += aerolites[i]->delta_.x * delta_time;
+            aerolites[i]->center_.y += aerolites[i]->delta_.y * delta_time;
+            aerolites[j]->center_.x += aerolites[j]->delta_.x * delta_time;
+            aerolites[j]->center_.y += aerolites[j]->delta_.y * delta_time;
+          }
+        }
+      }
+    }
+    ktp::circleScreenCollision(aerolites[i]->center_, aerolites[i]->radius_, aerolites[i]->delta_, screen_size);
+
+    aerolites[i]->generateCircleShape({aerolites[i]->center_.x, aerolites[i]->center_.y});
   }
 }

@@ -100,7 +100,7 @@ bool Player::checkPlayerCollisions(const std::vector<std::unique_ptr<Aerolite>>&
 
 bool Player::checkBulletsCollisions(const Bullet& bullet, std::vector<std::unique_ptr<Aerolite>>& aerolites) {
   for (auto aerolite = aerolites.begin(); aerolite != aerolites.end(); ++aerolite) {
-    if (ktp::isPointInsideCircle((*aerolite)->center_.x, (*aerolite)->center_.y, (*aerolite)->radius_, bullet.shape_.front().x, bullet.shape_.front().y)) {
+    if (ktp::isPointInsideCircleSQRT((*aerolite)->center_.x, (*aerolite)->center_.y, (*aerolite)->radius_, bullet.shape_.front().x, bullet.shape_.front().y)) {
       aerolite = aerolites.erase(aerolite);
       return true;
     }
