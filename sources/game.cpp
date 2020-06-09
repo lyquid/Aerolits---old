@@ -163,7 +163,7 @@ void Game::generateAerolites(unsigned int number) {
   } while (count < number);
 
   // aerolites_.push_back(std::unique_ptr<Aerolite>(new Aerolite(100, 100,  250, 0, 90)));
-  // aerolites_.push_back(std::unique_ptr<Aerolite>(new Aerolite(600, 140, -200, 0, 10)));  
+  // aerolites_.push_back(std::unique_ptr<Aerolite>(new Aerolite(600, 140, -200, 0, 10)));
 } 
 
 void Game::renderAerolites() {
@@ -173,9 +173,10 @@ void Game::renderAerolites() {
   } 
 }
 
-/* Original idea from Will Usher */
-/* Check it here: https://github.com/Twinklebear/TwinklebearDev-Lessons */
-/**
+/** 
+* Original idea from Will Usher 
+* Check it here: https://github.com/Twinklebear/TwinklebearDev-Lessons 
+*
 * Render the message we want to display to a texture for drawing.
 * @param message The message we want to display.
 * @param font The font we want to use to render the text.
