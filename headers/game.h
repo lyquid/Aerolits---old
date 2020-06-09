@@ -56,7 +56,7 @@ class Game {
   SDL_Texture*      fps_texture_;
 
   /* Asteroids stuff */
-  void generateAerolites(unsigned int number);
+  void generateAerolites(unsigned int number = 1u);
   void renderAerolites();
   void updateAerolites(float delta_time);
   std::vector<std::unique_ptr<Aerolite>> aerolites_;

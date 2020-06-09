@@ -125,28 +125,30 @@ void Aerolite::updateAerolites(float delta_time, const SDL_Point& screen_size, s
     aerolites[i]->center_.y += aerolites[i]->delta_.y * delta_time;
   }
 
-  bool aero_collision = false;
-
   // check all
   for (auto i = 0u; i < aerolites.size(); ++i) {
-    aero_collision = false;
-    for (auto j = i; j < aerolites.size(); ++j) {
-      if (i != j) {
-        bool aabb_check = ktp::checkCircleAABBCollision(aerolites[i]->radius_, aerolites[i]->center_.x, aerolites[i]->center_.y,
-                                                        aerolites[j]->radius_, aerolites[j]->center_.x, aerolites[j]->center_.y);
+    // wall collisions
+    ktp::circleScreenCollision(aerolites[i]->center_, aerolites[i]->radius_, aerolites[i]->delta_, screen_size);
+    // the other aerolite collisions
+    for (auto j = i + 1u; j < aerolites.size(); ++j) {
+      if (i != j) { // not myself
+        const bool aabb_check = ktp::checkCircleAABBCollision(aerolites[i]->radius_, aerolites[i]->center_.x, aerolites[i]->center_.y,
+                                                              aerolites[j]->radius_, aerolites[j]->center_.x, aerolites[j]->center_.y);
+        // maybe a collision
         if (aabb_check) {
-          aero_collision = ktp::checkCirclesCollisionSQRT(aerolites[i]->radius_,aerolites[i]->center_.x, aerolites[i]->center_.y, 
+          const bool aero_collision = ktp::checkCirclesCollisionSQRT(aerolites[i]->radius_,aerolites[i]->center_.x, aerolites[i]->center_.y, 
                                                           aerolites[j]->radius_, aerolites[j]->center_.x, aerolites[j]->center_.y);
+          // for sure it's a collision                                                          
           if (aero_collision) {
                   
-            float distance = sqrtf((aerolites[i]->center_.x - aerolites[j]->center_.x)*(aerolites[i]->center_.x - aerolites[j]->center_.x) + (aerolites[i]->center_.y - aerolites[j]->center_.y) * (aerolites[i]->center_.y - aerolites[j]->center_.y));
+            const float distance = sqrtf((aerolites[i]->center_.x - aerolites[j]->center_.x)*(aerolites[i]->center_.x - aerolites[j]->center_.x) + (aerolites[i]->center_.y - aerolites[j]->center_.y) * (aerolites[i]->center_.y - aerolites[j]->center_.y));
             
-            float nx = (aerolites[j]->center_.x - aerolites[i]->center_.x) / distance;
-            float ny = (aerolites[j]->center_.y - aerolites[i]->center_.y) / distance;
+            const float nx = (aerolites[j]->center_.x - aerolites[i]->center_.x) / distance;
+            const float ny = (aerolites[j]->center_.y - aerolites[i]->center_.y) / distance;
 
-            float kx = (aerolites[i]->delta_.x - aerolites[j]->delta_.x);
-            float ky = (aerolites[i]->delta_.y - aerolites[j]->delta_.y);
-            float p = 2.f * (nx * kx + ny * ky) / (aerolites[i]->mass_ + aerolites[j]->mass_);
+            const float kx = (aerolites[i]->delta_.x - aerolites[j]->delta_.x);
+            const float ky = (aerolites[i]->delta_.y - aerolites[j]->delta_.y);
+            const float p = 2.f * (nx * kx + ny * ky) / (aerolites[i]->mass_ + aerolites[j]->mass_);
 
             aerolites[i]->delta_.x = aerolites[i]->delta_.x - p * aerolites[j]->mass_ * nx;
             aerolites[i]->delta_.y = aerolites[i]->delta_.y - p * aerolites[j]->mass_ * ny;
@@ -162,8 +164,6 @@ void Aerolite::updateAerolites(float delta_time, const SDL_Point& screen_size, s
         }
       }
     }
-    ktp::circleScreenCollision(aerolites[i]->center_, aerolites[i]->radius_, aerolites[i]->delta_, screen_size);
-
     aerolites[i]->generateCircleShape({aerolites[i]->center_.x, aerolites[i]->center_.y});
   }
 }
