@@ -37,6 +37,7 @@ struct Aerolite {
   static void updateAerolites(float delta_time, const SDL_Point& screen_size, std::vector<std::unique_ptr<Aerolite>>& aerolites);
 
  private:
+  static float calculateMass(float radius);
   SDL_FPoint generateDelta();
   SDL_FPoint generatePosition(const SDL_Point& screen_size);
   void generateSquareShape(const SDL_FPoint& where);

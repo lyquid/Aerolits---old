@@ -7,7 +7,7 @@ Aerolite::Aerolite(float x, float y, float dx, float dy, unsigned int aerolite_s
   delta_({dx, dy}),
   size_(aerolite_size),
   radius_(static_cast<float>(size_) / 2.f),
-  mass_(radius_ * 10.f) {
+  mass_(calculateMass(radius_)) {
 
   generateCircleShape(center_);
   ++count_;
@@ -18,8 +18,8 @@ Aerolite::Aerolite(const SDL_Point& screen_size):
   delta_(generateDelta()),
   size_(generateSize()),
   radius_(static_cast<float>(size_) / 2.f),
-  mass_(radius_ * 10.f) {
-
+  mass_(calculateMass(radius_)) {
+  
   generateCircleShape(center_);
   ++count_;
 }
@@ -51,7 +51,7 @@ void Aerolite::updateAerolites(float delta_time, const SDL_Point& screen_size, s
   for (auto i = 0u; i < aerolites.size(); ++i) {
     // wall collisions
     const bool wall_collision = ktp::circleScreenCollision(aerolites[i]->center_, aerolites[i]->radius_, aerolites[i]->delta_, screen_size);
-    bool aero_collision;
+    bool aero_collision = false;
     // the other aerolite collisions
     for (auto j = i + 1u; j < aerolites.size(); ++j) {
       if (i != j) { // not myself
@@ -97,6 +97,12 @@ void Aerolite::updateAerolites(float delta_time, const SDL_Point& screen_size, s
 }
 
 /* PRIVATE */
+
+float Aerolite::calculateMass(float radius) {
+  const auto volume = (4.f / 3.f) * std::_Pi * std::pow(radius, 3);
+  constexpr auto density = 0.005f;  // kg/cm3 --> Lead = 11350 kg/m3 = 0.01135 kg/cm3
+  return density * volume;
+}
 
 SDL_FPoint Aerolite::generateDelta() {
   SDL_FPoint delta;
