@@ -7,9 +7,12 @@ Aerolite::Aerolite(float x, float y, float dx, float dy, unsigned int aerolite_s
   delta_({dx, dy}),
   size_(aerolite_size),
   radius_(static_cast<float>(size_) / 2.f),
-  mass_(calculateMass(radius_)) {
+  mass_(calculateMass(radius_)),
+  wraping_(false) {
 
   generateCircleShape(center_);
+  wraping_clones_.resize(3);
+  // collisions_vector_.reserve(8);
   ++count_;
 }
 
@@ -18,27 +21,33 @@ Aerolite::Aerolite(const SDL_Point& screen_size):
   delta_(generateDelta()),
   size_(generateSize()),
   radius_(static_cast<float>(size_) / 2.f),
-  mass_(calculateMass(radius_)) {
+  mass_(calculateMass(radius_)),
+  wraping_(false) {
   
   generateCircleShape(center_);
+  wraping_clones_.resize(3);
+  // collisions_vector_.reserve(8);
   ++count_;
 }
 
 Aerolite::Aerolite(const Aerolite& object) {
-  center_  = object.center_;
-  delta_   = object.delta_;
-  shape_   = object.shape_;
-  size_    = object.size_;
-  radius_  = object.radius_;
-  mass_    = object.mass_;
+  center_            = object.center_;
+  delta_             = object.delta_;
+  shape_             = object.shape_;
+  size_              = object.size_;
+  radius_            = object.radius_;
+  mass_              = object.mass_;
+  wraping_           = object.wraping_;
+  wraping_clones_    = object.wraping_clones_;
   ++count_;
 }
 
 void Aerolite::render(SDL_Renderer& renderer) const {
+  SDL_SetRenderDrawColor(&renderer, 0xFF, 0xFF, 0xFF, 0xFF);
   for (const auto& point: shape_) {
     SDL_RenderDrawPointF(&renderer, point.x, point.y);
   }
-  SDL_RenderDrawPointF(&renderer, center_.x, center_.y);
+  // SDL_RenderDrawPointF(&renderer, center_.x, center_.y);
 }
 
 void Aerolite::updateAerolites(float delta_time, const SDL_Point& screen_size, std::vector<std::unique_ptr<Aerolite>>& aerolites) {
@@ -46,52 +55,146 @@ void Aerolite::updateAerolites(float delta_time, const SDL_Point& screen_size, s
   for (auto i = 0u; i < aerolites.size(); ++i) {
     aerolites[i]->center_.x += aerolites[i]->delta_.x * delta_time;
     aerolites[i]->center_.y += aerolites[i]->delta_.y * delta_time;
+    aerolites[i]->wraping_ = ktp::checkCircleOutScreen(aerolites[i]->center_, aerolites[i]->radius_, screen_size);
+    if (aerolites[i]->wraping_) aerolites[i]->generateWrapingClones(screen_size);
+    ktp::wrapCoordinates(aerolites[i]->center_, screen_size);
   }
-  // check all
+
   for (auto i = 0u; i < aerolites.size(); ++i) {
-    // wall collisions
-    const bool wall_collision = ktp::circleScreenCollision(aerolites[i]->center_, aerolites[i]->radius_, aerolites[i]->delta_, screen_size);
     bool aero_collision = false;
     // the other aerolite collisions
     for (auto j = i + 1u; j < aerolites.size(); ++j) {
       if (i != j) { // not myself
-        const bool aabb_check = ktp::checkCircleAABBCollision(aerolites[i]->radius_, aerolites[i]->center_.x, aerolites[i]->center_.y,
-                                                              aerolites[j]->radius_, aerolites[j]->center_.x, aerolites[j]->center_.y);
+        bool aabb_check = ktp::checkCircleAABBCollision(aerolites[i]->radius_, aerolites[i]->center_.x, aerolites[i]->center_.y,
+                                                        aerolites[j]->radius_, aerolites[j]->center_.x, aerolites[j]->center_.y);
         if (aabb_check) { // maybe a collision
-
           const float distance = ktp::distanceBetweenPoints(aerolites[i]->center_, aerolites[j]->center_);
           aero_collision = distance < aerolites[i]->radius_ + aerolites[j]->radius_;
-
-          if (aero_collision) { // for sure it's a collision 
-
-            const float nx = (aerolites[j]->center_.x - aerolites[i]->center_.x) / distance;
-            const float ny = (aerolites[j]->center_.y - aerolites[i]->center_.y) / distance;
-
-            const float kx = (aerolites[i]->delta_.x - aerolites[j]->delta_.x);
-            const float ky = (aerolites[i]->delta_.y - aerolites[j]->delta_.y);
-            const float p = 2.f * (nx * kx + ny * ky) / (aerolites[i]->mass_ + aerolites[j]->mass_);
-
-            aerolites[i]->delta_.x = aerolites[i]->delta_.x - p * aerolites[j]->mass_ * nx;
-            aerolites[i]->delta_.y = aerolites[i]->delta_.y - p * aerolites[j]->mass_ * ny;
-            aerolites[j]->delta_.x = aerolites[j]->delta_.x + p * aerolites[i]->mass_ * nx;
-            aerolites[j]->delta_.y = aerolites[j]->delta_.y + p * aerolites[i]->mass_ * ny;
-
+          if (aero_collision) { // for sure it's a collision
+            ktp::elasticCollision(aerolites[i]->center_.x, aerolites[i]->center_.y, aerolites[i]->delta_.x, aerolites[i]->delta_.y, aerolites[i]->mass_,
+                                  aerolites[j]->center_.x, aerolites[j]->center_.y, aerolites[j]->delta_.x, aerolites[j]->delta_.y, aerolites[j]->mass_, distance);
             // move by new delta
             aerolites[i]->center_.x += aerolites[i]->delta_.x * delta_time;
             aerolites[i]->center_.y += aerolites[i]->delta_.y * delta_time;
             aerolites[j]->center_.x += aerolites[j]->delta_.x * delta_time;
             aerolites[j]->center_.y += aerolites[j]->delta_.y * delta_time;
+            if (aerolites[i]->wraping_) {
+              for (auto& clone: aerolites[i]->wraping_clones_) {
+                clone.x += aerolites[i]->delta_.x * delta_time;
+                clone.y += aerolites[i]->delta_.y * delta_time;
+              }
+            }
+            if (aerolites[j]->wraping_) {
+              for (auto& clone: aerolites[j]->wraping_clones_) {
+                clone.x += aerolites[j]->delta_.x * delta_time;
+                clone.y += aerolites[j]->delta_.y * delta_time;
+              }
+            }
+          }
+        }
+
+        if (aerolites[j]->wraping_) {
+          for (auto& clone: aerolites[j]->wraping_clones_) {
+            aabb_check = ktp::checkCircleAABBCollision(aerolites[i]->radius_, aerolites[i]->center_.x, aerolites[i]->center_.y,
+                                                       aerolites[j]->radius_,                 clone.x,                 clone.y);
+            if (aabb_check) {
+              const float distance = ktp::distanceBetweenPoints(aerolites[i]->center_, clone);
+              aero_collision = distance < aerolites[i]->radius_ + aerolites[j]->radius_;
+              if (aero_collision) {
+                ktp::elasticCollision(aerolites[i]->center_.x, aerolites[i]->center_.y, aerolites[i]->delta_.x, aerolites[i]->delta_.y, aerolites[i]->mass_,
+                                                      clone.x,                 clone.y, aerolites[j]->delta_.x, aerolites[j]->delta_.y, aerolites[j]->mass_, distance);
+                aerolites[i]->center_.x += aerolites[i]->delta_.x * delta_time;
+                aerolites[i]->center_.y += aerolites[i]->delta_.y * delta_time;
+                aerolites[j]->center_.x += aerolites[j]->delta_.x * delta_time;
+                aerolites[j]->center_.y += aerolites[j]->delta_.y * delta_time;
+                if (aerolites[i]->wraping_) {
+                  for (auto& clone: aerolites[i]->wraping_clones_) {
+                    clone.x += aerolites[i]->delta_.x * delta_time;
+                    clone.y += aerolites[i]->delta_.y * delta_time;
+                  }
+                }
+                if (aerolites[j]->wraping_) {
+                  for (auto& clone: aerolites[j]->wraping_clones_) {
+                    clone.x += aerolites[j]->delta_.x * delta_time;
+                    clone.y += aerolites[j]->delta_.y * delta_time;
+                  }
+                }
+              }
+            }
           }
         }
       }
     }
-    if (wall_collision || aero_collision) {
-      aerolites[i]->generateCircleShape({aerolites[i]->center_.x, aerolites[i]->center_.y});
-    } else {
-      for (auto& point: aerolites[i]->shape_) {
-        point.x += aerolites[i]->delta_.x * delta_time;
-        point.y += aerolites[i]->delta_.y * delta_time;
+    
+    if (aerolites[i]->wraping_) {
+      for (auto& clone: aerolites[i]->wraping_clones_) {
+        for (auto j = i + 1u; j < aerolites.size(); ++j) {
+          if (i != j) { // not myself
+            bool aabb_clones_check = ktp::checkCircleAABBCollision(aerolites[i]->radius_,                 clone.x,                 clone.y,
+                                                                   aerolites[j]->radius_, aerolites[j]->center_.x, aerolites[j]->center_.y);
+            if (aabb_clones_check) {
+              const float distance = ktp::distanceBetweenPoints(clone, aerolites[j]->center_);
+              aero_collision = distance < aerolites[i]->radius_ + aerolites[j]->radius_;
+              if (aero_collision) {
+                ktp::elasticCollision(                clone.x,                 clone.y, aerolites[i]->delta_.x, aerolites[i]->delta_.y, aerolites[i]->mass_,
+                                      aerolites[j]->center_.x, aerolites[j]->center_.y, aerolites[j]->delta_.x, aerolites[j]->delta_.y, aerolites[j]->mass_, distance);
+                aerolites[i]->center_.x += aerolites[i]->delta_.x * delta_time;
+                aerolites[i]->center_.y += aerolites[i]->delta_.y * delta_time;
+                aerolites[j]->center_.x += aerolites[j]->delta_.x * delta_time;
+                aerolites[j]->center_.y += aerolites[j]->delta_.y * delta_time;
+                if (aerolites[i]->wraping_) {
+                  for (auto& clone: aerolites[i]->wraping_clones_) {
+                    clone.x += aerolites[i]->delta_.x * delta_time;
+                    clone.y += aerolites[i]->delta_.y * delta_time;
+                  }
+                }
+                if (aerolites[j]->wraping_) {
+                  for (auto& clone: aerolites[j]->wraping_clones_) {
+                    clone.x += aerolites[j]->delta_.x * delta_time;
+                    clone.y += aerolites[j]->delta_.y * delta_time;
+                  }
+                }
+              }
+            }
+
+            if (aerolites[j]->wraping_) {
+              for (auto& t_clone: aerolites[j]->wraping_clones_) {
+                aabb_clones_check = ktp::checkCircleAABBCollision(aerolites[i]->radius_,   clone.x,   clone.y,
+                                                                  aerolites[j]->radius_, t_clone.x, t_clone.y);
+                if (aabb_clones_check) {
+                  const float distance = ktp::distanceBetweenPoints(clone, t_clone);
+                  aero_collision = distance < aerolites[i]->radius_ + aerolites[j]->radius_;
+                  if (aero_collision) {
+                    ktp::elasticCollision(  clone.x,   clone.y, aerolites[i]->delta_.x, aerolites[i]->delta_.y, aerolites[i]->mass_,
+                                          t_clone.x, t_clone.y, aerolites[j]->delta_.x, aerolites[j]->delta_.y, aerolites[j]->mass_, distance);
+                    aerolites[i]->center_.x += aerolites[i]->delta_.x * delta_time;
+                    aerolites[i]->center_.y += aerolites[i]->delta_.y * delta_time;
+                    aerolites[j]->center_.x += aerolites[j]->delta_.x * delta_time;
+                    aerolites[j]->center_.y += aerolites[j]->delta_.y * delta_time;
+                    if (aerolites[i]->wraping_) {
+                      for (auto& clone: aerolites[i]->wraping_clones_) {
+                        clone.x += aerolites[i]->delta_.x * delta_time;
+                        clone.y += aerolites[i]->delta_.y * delta_time;
+                      }
+                    }
+                    if (aerolites[j]->wraping_) {
+                      for (auto& clone: aerolites[j]->wraping_clones_) {
+                        clone.x += aerolites[j]->delta_.x * delta_time;
+                        clone.y += aerolites[j]->delta_.y * delta_time;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
+    }
+    // move the circle shape to position
+    aerolites[i]->generateCircleShape({aerolites[i]->center_.x, aerolites[i]->center_.y});
+    for (auto& point: aerolites[i]->shape_) {
+      ktp::wrapCoordinates(point, screen_size);
     }
   }
 }
@@ -99,8 +202,8 @@ void Aerolite::updateAerolites(float delta_time, const SDL_Point& screen_size, s
 /* PRIVATE */
 
 float Aerolite::calculateMass(float radius) {
-  const auto volume = (4.f / 3.f) * std::_Pi * std::pow(radius, 3);
-  constexpr auto density = 0.005f;  // kg/cm3 --> Lead = 11350 kg/m3 = 0.01135 kg/cm3
+  const auto volume = (4.f / 3.f) * M_PI * std::pow(radius, 3);
+  constexpr auto density = 0.0037f;  // in kg/cm3
   return density * volume;
 }
 
@@ -177,4 +280,60 @@ unsigned int Aerolite::generateSize(unsigned int min, unsigned int max) {
   std::mt19937 generator(std::chrono::system_clock::now().time_since_epoch().count());
   std::uniform_int_distribution<unsigned int> distribution(min, max);
   return distribution(generator);
+}
+
+void Aerolite::generateWrapingClones(const SDL_Point& screen_size) {
+/*  ___________
+    | 0  | 1  |
+    |____|____|
+    | 2  | 3  |
+    |____|____|  */
+  if (center_.x < screen_size.x / 2 && center_.y < screen_size.y / 2) {
+    // original in sector 0
+    // clone in sector 1
+    wraping_clones_[0].x = center_.x + screen_size.x;
+    wraping_clones_[0].y = center_.y;
+    // clone in sector 2
+    wraping_clones_[1].x = center_.x;
+    wraping_clones_[1].y = center_.y + screen_size.y;
+    // clone in sector 3
+    wraping_clones_[2].x = center_.x + screen_size.x;
+    wraping_clones_[2].y = center_.y + screen_size.y;
+
+  } else if (center_.x >= screen_size.x / 2 && center_.y < screen_size.y / 2) {
+    // original in sector 1
+    // clone in sector 0
+    wraping_clones_[0].x = center_.x - screen_size.x;
+    wraping_clones_[0].y = center_.y;
+    // clone in sector 2
+    wraping_clones_[1].x = center_.x - screen_size.x;
+    wraping_clones_[1].y = center_.y + screen_size.y;
+    // clone in sector 3
+    wraping_clones_[2].x = center_.x;
+    wraping_clones_[2].y = center_.y + screen_size.y;
+
+  } else if (center_.x < screen_size.x / 2 && center_.y >= screen_size.y / 2) {
+    // original in sector 2
+    // clone in sector 0
+    wraping_clones_[0].x = center_.x;
+    wraping_clones_[0].y = center_.y - screen_size.y;
+    // clone in sector 1
+    wraping_clones_[1].x = center_.x + screen_size.x;
+    wraping_clones_[1].y = center_.y - screen_size.y;
+    // clone in sector 3
+    wraping_clones_[2].x = center_.x + screen_size.x;
+    wraping_clones_[2].y = center_.y;
+
+  } else {
+    // original in sector 3
+    // clone in sector 0
+    wraping_clones_[0].x = center_.x - screen_size.x;
+    wraping_clones_[0].y = center_.y - screen_size.y;
+    // clone in sector 1
+    wraping_clones_[1].x = center_.x;
+    wraping_clones_[1].y = center_.y - screen_size.y;
+    // clone in sector 2
+    wraping_clones_[2].x = center_.x - screen_size.x;
+    wraping_clones_[2].y = center_.y;
+  }
 }

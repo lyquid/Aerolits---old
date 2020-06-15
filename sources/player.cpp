@@ -45,6 +45,7 @@ void Player::move(float delta_time) {
 }
 
 void Player::render(SDL_Renderer& renderer) const {
+  SDL_SetRenderDrawColor(&renderer, 0xFF, 0xFF, 0xFF, 0xFF);
   SDL_RenderDrawLinesF(&renderer, render_shape_.data(), shape_.size());
   for (const auto& clone: render_shape_clones_) {
     SDL_RenderDrawLinesF(&renderer, clone.data(), shape_.size());

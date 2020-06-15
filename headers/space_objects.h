@@ -20,14 +20,6 @@ enum class SpaceObjectType {
 
 struct Aerolite {
   
-  static unsigned int     count_;
-  SDL_FPoint              center_;
-  SDL_FPoint              delta_;
-  std::vector<SDL_FPoint> shape_;
-  unsigned int            size_;
-  float                   radius_;
-  float                   mass_;
-  
   Aerolite(const SDL_Point& screen_size);
   Aerolite(const Aerolite& object);
   Aerolite(float x, float y, float dx, float dy, unsigned int aerolite_size);
@@ -36,6 +28,14 @@ struct Aerolite {
   void render(SDL_Renderer& renderer) const;
   static void updateAerolites(float delta_time, const SDL_Point& screen_size, std::vector<std::unique_ptr<Aerolite>>& aerolites);
 
+  static unsigned int     count_;
+  SDL_FPoint              center_;
+  SDL_FPoint              delta_;
+  std::vector<SDL_FPoint> shape_;
+  unsigned int            size_;
+  float                   radius_;
+  float                   mass_;
+  
  private:
   static float calculateMass(float radius);
   SDL_FPoint generateDelta();
@@ -44,6 +44,10 @@ struct Aerolite {
   void generateCircleShape(const SDL_FPoint& where);
   unsigned int generateSize();
   unsigned int generateSize(unsigned int min, unsigned int max);
+  void generateWrapingClones(const SDL_Point& screen_size);
+
+  bool                    wraping_;
+  std::vector<SDL_FPoint> wraping_clones_;
 };
 
 struct Bullet {

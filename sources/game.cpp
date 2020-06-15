@@ -162,12 +162,11 @@ void Game::generateAerolites(unsigned int number) {
     if (++too_many > (kSCREEN_SIZE_.x + kSCREEN_SIZE_.y) / 50u) break;
   } while (count < number);
 
-  // aerolites_.push_back(std::unique_ptr<Aerolite>(new Aerolite(100, 100,  250, 0, 90)));
-  // aerolites_.push_back(std::unique_ptr<Aerolite>(new Aerolite(600, 140, -200, 0, 10)));
+  // aerolites_.push_back(std::unique_ptr<Aerolite>(new Aerolite(100, 140,  -100, 0, 200)));
+  // aerolites_.push_back(std::unique_ptr<Aerolite>(new Aerolite(600, 140,   -10, 0, 200)));
 } 
 
 void Game::renderAerolites() {
-  SDL_SetRenderDrawColor(renderer_, 0xFF, 0xFF, 0xFF, 0xFF);
   for (const auto& aerolite: aerolites_ ) {
     aerolite->render(*renderer_);
   } 
