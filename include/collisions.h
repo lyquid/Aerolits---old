@@ -6,7 +6,8 @@
 
 namespace ktp {
 
-template <typename T> static bool checkCircleAABBCollision(T a_radius, T a_x, T a_y, T b_radius, T b_x, T b_y);
+template <typename T> static bool checkCircleAABBCollision(T a_x, T a_y, T a_radius, T b_x, T b_y, T b_radius);
+template <typename T, typename U> static bool checkCircleAABBCollision(const T& circle_a, U a_radius, const T& circle_b, U b_radius);
 template <typename T> static bool checkCirclesCollision(T a_radius, T a_x, T a_y, T b_radius, T b_x, T b_y);
 template <typename T, typename U> static bool circleScreenCollision(T& circle_x, T& circle_y,  T radius, T& delta_x, T& delta_y, U screen_x, U screen_y);
 template <typename T, typename U, typename V> static bool circleScreenCollision(T& circle, U radius, T& delta, const V& screen_size);
@@ -23,11 +24,16 @@ template <typename T, typename U> static void wrapCoordinates(T& point, const U&
 /* DEFINITIONS BELOW */
 
 template <typename T>
-bool checkCircleAABBCollision(T a_radius, T a_x, T a_y, T b_radius, T b_x, T b_y) {
+bool checkCircleAABBCollision(T a_x, T a_y, T a_radius, T b_x, T b_y, T b_radius) {
   return (a_x + a_radius + b_radius > b_x
        && a_x < b_x + a_radius + b_radius
        && a_y + a_radius + b_radius > b_y
        && a_y < b_y + a_radius + b_radius);
+}
+
+template <typename T, typename U>
+bool checkCircleAABBCollision(const T& circle_a, U a_radius, const T& circle_b, U b_radius) {
+  return checkCircleAABBCollision(circle_a.x, circle_a.y, a_radius, circle_b.x, circle_b.y, b_radius);
 }
 
 template <typename T>

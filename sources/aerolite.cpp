@@ -12,7 +12,6 @@ Aerolite::Aerolite(float x, float y, float dx, float dy, unsigned int aerolite_s
 
   generateCircleShape(center_);
   wraping_clones_.resize(3);
-  // collisions_vector_.reserve(8);
   ++count_;
 }
 
@@ -26,7 +25,6 @@ Aerolite::Aerolite(const SDL_Point& screen_size):
   
   generateCircleShape(center_);
   wraping_clones_.resize(3);
-  // collisions_vector_.reserve(8);
   ++count_;
 }
 
@@ -65,8 +63,7 @@ void Aerolite::updateAerolites(float delta_time, const SDL_Point& screen_size, s
     // the other aerolite collisions
     for (auto j = i + 1u; j < aerolites.size(); ++j) {
       if (i != j) { // not myself
-        bool aabb_check = ktp::checkCircleAABBCollision(aerolites[i]->radius_, aerolites[i]->center_.x, aerolites[i]->center_.y,
-                                                        aerolites[j]->radius_, aerolites[j]->center_.x, aerolites[j]->center_.y);
+        bool aabb_check = ktp::checkCircleAABBCollision(aerolites[i]->center_, aerolites[i]->radius_, aerolites[j]->center_, aerolites[j]->radius_);
         if (aabb_check) { // maybe a collision
           const float distance = ktp::distanceBetweenPoints(aerolites[i]->center_, aerolites[j]->center_);
           aero_collision = distance < aerolites[i]->radius_ + aerolites[j]->radius_;
@@ -95,8 +92,7 @@ void Aerolite::updateAerolites(float delta_time, const SDL_Point& screen_size, s
 
         if (aerolites[j]->wraping_) {
           for (auto& clone: aerolites[j]->wraping_clones_) {
-            aabb_check = ktp::checkCircleAABBCollision(aerolites[i]->radius_, aerolites[i]->center_.x, aerolites[i]->center_.y,
-                                                       aerolites[j]->radius_,                 clone.x,                 clone.y);
+            aabb_check = ktp::checkCircleAABBCollision(aerolites[i]->center_, aerolites[i]->radius_, clone, aerolites[j]->radius_);
             if (aabb_check) {
               const float distance = ktp::distanceBetweenPoints(aerolites[i]->center_, clone);
               aero_collision = distance < aerolites[i]->radius_ + aerolites[j]->radius_;
@@ -130,8 +126,7 @@ void Aerolite::updateAerolites(float delta_time, const SDL_Point& screen_size, s
       for (auto& clone: aerolites[i]->wraping_clones_) {
         for (auto j = i + 1u; j < aerolites.size(); ++j) {
           if (i != j) { // not myself
-            bool aabb_clones_check = ktp::checkCircleAABBCollision(aerolites[i]->radius_,                 clone.x,                 clone.y,
-                                                                   aerolites[j]->radius_, aerolites[j]->center_.x, aerolites[j]->center_.y);
+            bool aabb_clones_check = ktp::checkCircleAABBCollision(clone, aerolites[i]->radius_, aerolites[j]->center_, aerolites[j]->radius_);
             if (aabb_clones_check) {
               const float distance = ktp::distanceBetweenPoints(clone, aerolites[j]->center_);
               aero_collision = distance < aerolites[i]->radius_ + aerolites[j]->radius_;
@@ -159,8 +154,7 @@ void Aerolite::updateAerolites(float delta_time, const SDL_Point& screen_size, s
 
             if (aerolites[j]->wraping_) {
               for (auto& t_clone: aerolites[j]->wraping_clones_) {
-                aabb_clones_check = ktp::checkCircleAABBCollision(aerolites[i]->radius_,   clone.x,   clone.y,
-                                                                  aerolites[j]->radius_, t_clone.x, t_clone.y);
+                aabb_clones_check = ktp::checkCircleAABBCollision(clone, aerolites[i]->radius_, t_clone, aerolites[j]->radius_);
                 if (aabb_clones_check) {
                   const float distance = ktp::distanceBetweenPoints(clone, t_clone);
                   aero_collision = distance < aerolites[i]->radius_ + aerolites[j]->radius_;
