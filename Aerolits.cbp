@@ -37,12 +37,17 @@
 			<Add directory="H:/GRUPOS/ACREDITACIONES/TRABAJADORES_CA/ALEX/PrOG/lib/SDL2-2.0.12/lib" />
 		</Linker>
 		<Unit filename="headers/game.h" />
+		<Unit filename="headers/space_objects.h" />
 		<Unit filename="include/cleanup.h" />
+		<Unit filename="include/collisions.h" />
+		<Unit filename="include/fps.h" />
 		<Unit filename="include/log.h" />
 		<Unit filename="include/resources_path.h" />
 		<Unit filename="include/timer.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="sources/aerolite.cpp" />
 		<Unit filename="sources/game.cpp" />
+		<Unit filename="sources/player.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />

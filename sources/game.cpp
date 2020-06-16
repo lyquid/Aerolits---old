@@ -2,15 +2,17 @@
 
 Game::Game():
   quit_(false),
-  kSCREEN_HEIGHT_(768),
-  kSCREEN_WIDTH_(1024),
-  font_color_({255, 255, 255, 255}),
+  kFONT_COLOR_({0xFF, 0xFF, 0xFF, 0xFF}),
+  kSCREEN_SIZE_({1024, 768}),
+  event_(), 
   font_(nullptr),
   main_window_(nullptr),
   renderer_(nullptr),
-  fps_texture_(nullptr) {}
+  fps_texture_(nullptr),
+  player_(kSCREEN_SIZE_) {
 
-Game::~Game() { clean(); }
+  aerolites_.reserve(50);
+}
 
 void Game::handleEvents() {
   while (SDL_PollEvent(&event_)) {
@@ -18,7 +20,7 @@ void Game::handleEvents() {
       case SDL_QUIT:
         quit_ = true;
         break;
-      case SDL_KEYDOWN: 
+      case SDL_KEYDOWN:
         handleKeyEvents(event_.key.keysym.sym);
         break;
       default:
@@ -49,7 +51,7 @@ bool Game::init() {
     return false;
   }
 
-  main_window_ = SDL_CreateWindow("SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, kSCREEN_WIDTH_, kSCREEN_HEIGHT_, SDL_WINDOW_SHOWN);
+  main_window_ = SDL_CreateWindow("SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, kSCREEN_SIZE_.x, kSCREEN_SIZE_.y, SDL_WINDOW_SHOWN);
   if (main_window_ == nullptr) {
 	  ktp::logSDLError("SDL_CreateWindow");
     TTF_Quit();
@@ -75,25 +77,62 @@ bool Game::init() {
     SDL_Quit();
     return false;
   }
+
+  generateAerolites(6);
+  
   return true;
 }
 
 void Game::render() {
+  SDL_SetRenderDrawColor(renderer_, 0x00, 0x00, 0x00, 0x00);
   SDL_RenderClear(renderer_);
-  renderTexture(fps_texture_, renderer_, 0u, 0u);
+
+  renderTexture(fps_texture_, *renderer_, 0u, 0u);
+  renderAerolites();
+  player_.render(*renderer_);
+
   SDL_RenderPresent(renderer_);
   ++fps_;
 }
 
 void Game::update() {
+  /* FPS */
   fps_text_.str(std::string());
   fps_text_ << fps_.average();
-
   ktp::cleanup(fps_texture_); // <-- is this really necessary? seems to...
-  fps_texture_ = renderText(fps_text_.str(), font_, font_color_, 8, renderer_); // size not working
+  fps_texture_ = renderText(fps_text_.str(), font_, kFONT_COLOR_, 8, *renderer_); // size not working
+
+  const float delta_time = clock_.restart() / 1000.f;
+
+  /* Aerolites */
+  Aerolite::updateAerolites(delta_time, kSCREEN_SIZE_, aerolites_);
+
+  /* Player */ 
+  if (player_.isAlive()) {
+    checkKeyStates(delta_time);
+    player_.update(delta_time, aerolites_);  
+  } else {
+    player_.reset();
+  }
  }
 
-/* Private methods below */
+/* PRIVATE */
+
+void Game::checkKeyStates(float delta_time) {
+  const Uint8* state = SDL_GetKeyboardState(nullptr);
+  if (state[SDL_SCANCODE_W] || state[SDL_SCANCODE_UP]){
+    player_.thrust(delta_time);
+  }
+  if (state[SDL_SCANCODE_A] || state[SDL_SCANCODE_LEFT]){
+    player_.steerLeft(delta_time);
+  }
+  if (state[SDL_SCANCODE_D] || state[SDL_SCANCODE_RIGHT]){
+    player_.steerRight(delta_time);
+  }
+  if (state[SDL_SCANCODE_SPACE]){
+    player_.shoot(delta_time);
+  }
+}
 
 void Game::clean() {
   ktp::cleanup(fps_texture_, renderer_, main_window_, font_);
@@ -101,9 +140,42 @@ void Game::clean() {
 	SDL_Quit();
 }
 
-/* Original idea from Will Usher */
-/* Check it here: https://github.com/Twinklebear/TwinklebearDev-Lessons */
-/**
+void Game::generateAerolites(unsigned int number) {
+  unsigned int count = 0u;
+  unsigned int too_many = 0u;
+  Aerolite* aero;
+  
+  do {
+    bool bad_place = false;
+    aero = new Aerolite(kSCREEN_SIZE_);
+    for (auto i = 0u; i < aerolites_.size() && !bad_place; ++i) {
+      if (ktp::checkCircleAABBCollision(aero->center_, aero->radius_, aerolites_[i]->center_, aerolites_[i]->radius_)) {
+        bad_place = true;
+      }
+    }
+    if (!bad_place) {
+      aerolites_.push_back(std::unique_ptr<Aerolite>(aero));
+      ++count;
+    } else {
+      delete aero;
+    }
+    if (++too_many > (kSCREEN_SIZE_.x + kSCREEN_SIZE_.y) / 50u) break;
+  } while (count < number);
+
+  // aerolites_.push_back(std::unique_ptr<Aerolite>(new Aerolite(100, 140,  -100, 0, 200)));
+  // aerolites_.push_back(std::unique_ptr<Aerolite>(new Aerolite(600, 140,   -10, 0, 200)));
+} 
+
+void Game::renderAerolites() {
+  for (const auto& aerolite: aerolites_ ) {
+    aerolite->render(*renderer_);
+  } 
+}
+
+/** 
+* Original idea from Will Usher 
+* Check it here: https://github.com/Twinklebear/TwinklebearDev-Lessons 
+*
 * Render the message we want to display to a texture for drawing.
 * @param message The message we want to display.
 * @param font The font we want to use to render the text.
@@ -112,15 +184,15 @@ void Game::clean() {
 * @param renderer The renderer to load the texture in.
 */
 SDL_Texture* Game::renderText(const std::string& message, TTF_Font* font,
-	                            SDL_Color color, int size, SDL_Renderer* renderer) {
-    
+	                            SDL_Color color, int size, SDL_Renderer& renderer) {
+
   SDL_Surface* surface = TTF_RenderText_Blended(font, message.c_str(), color);
   if (surface == nullptr) {
     ktp::logSDLError("TTF_RenderText_Blended");
     return nullptr;
   }
 
-  SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+  SDL_Texture* texture = SDL_CreateTextureFromSurface(&renderer, surface);
   if (texture == nullptr) {
     ktp::logSDLError("SDL_CreateTextureFromSurface");
   }
@@ -137,12 +209,12 @@ SDL_Texture* Game::renderText(const std::string& message, TTF_Font* font,
 * @param x The x coordinate to draw to.
 * @param y The y coordinate to draw to.
 */
-void Game::renderTexture(SDL_Texture* tex, SDL_Renderer* ren, int x, int y){
+void Game::renderTexture(SDL_Texture* tex, SDL_Renderer& renderer, int x, int y){
 	// Setup the destination rectangle to be at the position we want
 	SDL_Rect dst;
 	dst.x = x;
 	dst.y = y;
 	// Query the texture to get its width and height to use
 	SDL_QueryTexture(tex, NULL, NULL, &dst.w, &dst.h);
-	SDL_RenderCopy(ren, tex, NULL, &dst);
+	SDL_RenderCopy(&renderer, tex, NULL, &dst);
 }

@@ -5,7 +5,7 @@
 
 int main(int argc, char *argv[]) {
 
-  std::srand(static_cast<unsigned int>(std::time(nullptr)));
+  // std::srand(static_cast<unsigned int>(std::time(nullptr))); maybe not needed if using mt19937
 
   Game* game = new Game();
 
