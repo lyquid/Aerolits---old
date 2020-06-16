@@ -2,14 +2,17 @@
 
 Game::Game():
   quit_(false),
-  font_color_({255, 255, 255, 255}),
+  kFONT_COLOR_({0xFF, 0xFF, 0xFF, 0xFF}),
   kSCREEN_SIZE_({1024, 768}),
+  event_(), 
   font_(nullptr),
   main_window_(nullptr),
   renderer_(nullptr),
-  fps_texture_(nullptr) { }
+  fps_texture_(nullptr),
+  player_(kSCREEN_SIZE_) {
 
-Game::~Game() { clean(); }
+  aerolites_.reserve(50);
+}
 
 void Game::handleEvents() {
   while (SDL_PollEvent(&event_)) {
@@ -75,8 +78,8 @@ bool Game::init() {
     return false;
   }
 
-  generateAerolites(8);
-
+  generateAerolites(6);
+  
   return true;
 }
 
@@ -86,6 +89,7 @@ void Game::render() {
 
   renderTexture(fps_texture_, *renderer_, 0u, 0u);
   renderAerolites();
+  player_.render(*renderer_);
 
   SDL_RenderPresent(renderer_);
   ++fps_;
@@ -96,14 +100,39 @@ void Game::update() {
   fps_text_.str(std::string());
   fps_text_ << fps_.average();
   ktp::cleanup(fps_texture_); // <-- is this really necessary? seems to...
-  fps_texture_ = renderText(fps_text_.str(), font_, font_color_, 8, *renderer_); // size not working
+  fps_texture_ = renderText(fps_text_.str(), font_, kFONT_COLOR_, 8, *renderer_); // size not working
+
+  const float delta_time = clock_.restart() / 1000.f;
 
   /* Aerolites */
-  const float delta_time = clock_.restart() / 1000.f;
-  updateAerolites(delta_time);
+  Aerolite::updateAerolites(delta_time, kSCREEN_SIZE_, aerolites_);
+
+  /* Player */ 
+  if (player_.isAlive()) {
+    checkKeyStates(delta_time);
+    player_.update(delta_time, aerolites_);  
+  } else {
+    player_.reset();
+  }
  }
 
-/* Private methods below */
+/* PRIVATE */
+
+void Game::checkKeyStates(float delta_time) {
+  const Uint8* state = SDL_GetKeyboardState(nullptr);
+  if (state[SDL_SCANCODE_W] || state[SDL_SCANCODE_UP]){
+    player_.thrust(delta_time);
+  }
+  if (state[SDL_SCANCODE_A] || state[SDL_SCANCODE_LEFT]){
+    player_.steerLeft(delta_time);
+  }
+  if (state[SDL_SCANCODE_D] || state[SDL_SCANCODE_RIGHT]){
+    player_.steerRight(delta_time);
+  }
+  if (state[SDL_SCANCODE_SPACE]){
+    player_.shoot(delta_time);
+  }
+}
 
 void Game::clean() {
   ktp::cleanup(fps_texture_, renderer_, main_window_, font_);
@@ -112,21 +141,41 @@ void Game::clean() {
 }
 
 void Game::generateAerolites(unsigned int number) {
-  for (auto i = 0u; i < number; ++i) {
-    aerolites_.push_back(std::unique_ptr<SpaceObject>(new SpaceObject(kSCREEN_SIZE_)));
-  } 
-}
+  unsigned int count = 0u;
+  unsigned int too_many = 0u;
+  Aerolite* aero;
+  
+  do {
+    bool bad_place = false;
+    aero = new Aerolite(kSCREEN_SIZE_);
+    for (auto i = 0u; i < aerolites_.size() && !bad_place; ++i) {
+      if (ktp::checkCircleAABBCollision(aero->center_, aero->radius_, aerolites_[i]->center_, aerolites_[i]->radius_)) {
+        bad_place = true;
+      }
+    }
+    if (!bad_place) {
+      aerolites_.push_back(std::unique_ptr<Aerolite>(aero));
+      ++count;
+    } else {
+      delete aero;
+    }
+    if (++too_many > (kSCREEN_SIZE_.x + kSCREEN_SIZE_.y) / 50u) break;
+  } while (count < number);
+
+  // aerolites_.push_back(std::unique_ptr<Aerolite>(new Aerolite(100, 140,  -100, 0, 200)));
+  // aerolites_.push_back(std::unique_ptr<Aerolite>(new Aerolite(600, 140,   -10, 0, 200)));
+} 
 
 void Game::renderAerolites() {
-  SDL_SetRenderDrawColor(renderer_, 0xFF, 0xFF, 0xFF, 0xFF);
   for (const auto& aerolite: aerolites_ ) {
     aerolite->render(*renderer_);
   } 
 }
 
-/* Original idea from Will Usher */
-/* Check it here: https://github.com/Twinklebear/TwinklebearDev-Lessons */
-/**
+/** 
+* Original idea from Will Usher 
+* Check it here: https://github.com/Twinklebear/TwinklebearDev-Lessons 
+*
 * Render the message we want to display to a texture for drawing.
 * @param message The message we want to display.
 * @param font The font we want to use to render the text.
@@ -168,20 +217,4 @@ void Game::renderTexture(SDL_Texture* tex, SDL_Renderer& renderer, int x, int y)
 	// Query the texture to get its width and height to use
 	SDL_QueryTexture(tex, NULL, NULL, &dst.w, &dst.h);
 	SDL_RenderCopy(&renderer, tex, NULL, &dst);
-}
-
-void Game::updateAerolites(float delta_time) {
-  for (auto& aerolite: aerolites_ ) {
-    aerolite->move(delta_time, kSCREEN_SIZE_, aerolites_);
-  }
-  /* auto i = 0;
-  for (auto it_move = aerolites_.begin(); it_move != aerolites_.end(); ++it_move) {
-    it_move->get()->move(delta_time, kSCREEN_SIZE_);
-    for (auto it_col = it_move + 1; it_col != aerolites_.end(); ++it_col) {
-      // check collisions
-      // it_move->get()->checkCollision(it_col->get());
-      ++i;
-    }
-  } */
-  // ktp::logMessage("checked collisions: " + std::to_string(i));
 }
