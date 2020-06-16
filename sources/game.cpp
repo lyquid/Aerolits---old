@@ -169,7 +169,7 @@ void Game::generateAerolites(unsigned int number) {
 void Game::renderAerolites() {
   for (const auto& aerolite: aerolites_ ) {
     aerolite->render(*renderer_);
-  } 
+  }
 }
 
 /** 

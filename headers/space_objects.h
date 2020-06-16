@@ -35,6 +35,8 @@ struct Aerolite {
   unsigned int            size_;
   float                   radius_;
   float                   mass_;
+  bool                    wraping_;
+  std::vector<SDL_FPoint> wraping_clones_;
   
  private:
   static float calculateMass(float radius);
@@ -45,9 +47,6 @@ struct Aerolite {
   unsigned int generateSize();
   unsigned int generateSize(unsigned int min, unsigned int max);
   void generateWrapingClones(const SDL_Point& screen_size);
-
-  bool                    wraping_;
-  std::vector<SDL_FPoint> wraping_clones_;
 };
 
 struct Bullet {

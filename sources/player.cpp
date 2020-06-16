@@ -105,6 +105,14 @@ bool Player::checkBulletsCollisions(const Bullet& bullet, std::vector<std::uniqu
       aerolite = aerolites.erase(aerolite);
       return true;
     }
+    if ((*aerolite)->wraping_) {
+      for (const auto& clone: (*aerolite)->wraping_clones_) {
+        if (ktp::isPointInsideCircle({clone.x, clone.y}, (*aerolite)->radius_, bullet.shape_.front())) {
+          aerolite = aerolites.erase(aerolite);
+          return true;
+        }
+      }
+    }
   }
   return false;
 }
