@@ -68,8 +68,8 @@ void Aerolite::updateAerolites(float delta_time, const SDL_Point& screen_size, s
           const float distance = ktp::distanceBetweenPoints(aerolites[i]->center_, aerolites[j]->center_);
           aero_collision = distance < aerolites[i]->radius_ + aerolites[j]->radius_;
           if (aero_collision) { // for sure it's a collision
-            ktp::elasticCollision(aerolites[i]->center_.x, aerolites[i]->center_.y, aerolites[i]->delta_.x, aerolites[i]->delta_.y, aerolites[i]->mass_,
-                                  aerolites[j]->center_.x, aerolites[j]->center_.y, aerolites[j]->delta_.x, aerolites[j]->delta_.y, aerolites[j]->mass_, distance);
+            ktp::elasticCollision(aerolites[i]->center_, aerolites[i]->delta_, aerolites[i]->mass_,
+                                  aerolites[j]->center_, aerolites[j]->delta_, aerolites[j]->mass_, distance);
             // move by new delta
             aerolites[i]->center_.x += aerolites[i]->delta_.x * delta_time;
             aerolites[i]->center_.y += aerolites[i]->delta_.y * delta_time;
@@ -97,8 +97,8 @@ void Aerolite::updateAerolites(float delta_time, const SDL_Point& screen_size, s
               const float distance = ktp::distanceBetweenPoints(aerolites[i]->center_, clone);
               aero_collision = distance < aerolites[i]->radius_ + aerolites[j]->radius_;
               if (aero_collision) {
-                ktp::elasticCollision(aerolites[i]->center_.x, aerolites[i]->center_.y, aerolites[i]->delta_.x, aerolites[i]->delta_.y, aerolites[i]->mass_,
-                                                      clone.x,                 clone.y, aerolites[j]->delta_.x, aerolites[j]->delta_.y, aerolites[j]->mass_, distance);
+                ktp::elasticCollision(aerolites[i]->center_, aerolites[i]->delta_, aerolites[i]->mass_,
+                                                      clone, aerolites[j]->delta_, aerolites[j]->mass_, distance);
                 aerolites[i]->center_.x += aerolites[i]->delta_.x * delta_time;
                 aerolites[i]->center_.y += aerolites[i]->delta_.y * delta_time;
                 aerolites[j]->center_.x += aerolites[j]->delta_.x * delta_time;
@@ -125,14 +125,14 @@ void Aerolite::updateAerolites(float delta_time, const SDL_Point& screen_size, s
     if (aerolites[i]->wraping_) {
       for (auto& clone: aerolites[i]->wraping_clones_) {
         for (auto j = i + 1u; j < aerolites.size(); ++j) {
-          if (i != j) { // not myself
+          if (i != j) {
             bool aabb_clones_check = ktp::checkCircleAABBCollision(clone, aerolites[i]->radius_, aerolites[j]->center_, aerolites[j]->radius_);
             if (aabb_clones_check) {
               const float distance = ktp::distanceBetweenPoints(clone, aerolites[j]->center_);
               aero_collision = distance < aerolites[i]->radius_ + aerolites[j]->radius_;
               if (aero_collision) {
-                ktp::elasticCollision(                clone.x,                 clone.y, aerolites[i]->delta_.x, aerolites[i]->delta_.y, aerolites[i]->mass_,
-                                      aerolites[j]->center_.x, aerolites[j]->center_.y, aerolites[j]->delta_.x, aerolites[j]->delta_.y, aerolites[j]->mass_, distance);
+                ktp::elasticCollision(                clone, aerolites[i]->delta_, aerolites[i]->mass_,
+                                      aerolites[j]->center_, aerolites[j]->delta_, aerolites[j]->mass_, distance);
                 aerolites[i]->center_.x += aerolites[i]->delta_.x * delta_time;
                 aerolites[i]->center_.y += aerolites[i]->delta_.y * delta_time;
                 aerolites[j]->center_.x += aerolites[j]->delta_.x * delta_time;
@@ -159,8 +159,8 @@ void Aerolite::updateAerolites(float delta_time, const SDL_Point& screen_size, s
                   const float distance = ktp::distanceBetweenPoints(clone, t_clone);
                   aero_collision = distance < aerolites[i]->radius_ + aerolites[j]->radius_;
                   if (aero_collision) {
-                    ktp::elasticCollision(  clone.x,   clone.y, aerolites[i]->delta_.x, aerolites[i]->delta_.y, aerolites[i]->mass_,
-                                          t_clone.x, t_clone.y, aerolites[j]->delta_.x, aerolites[j]->delta_.y, aerolites[j]->mass_, distance);
+                    ktp::elasticCollision(  clone, aerolites[i]->delta_, aerolites[i]->mass_,
+                                          t_clone, aerolites[j]->delta_, aerolites[j]->mass_, distance);
                     aerolites[i]->center_.x += aerolites[i]->delta_.x * delta_time;
                     aerolites[i]->center_.y += aerolites[i]->delta_.y * delta_time;
                     aerolites[j]->center_.x += aerolites[j]->delta_.x * delta_time;
