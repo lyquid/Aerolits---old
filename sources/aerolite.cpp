@@ -18,7 +18,7 @@ Aerolite::Aerolite(float x, float y, float dx, float dy, unsigned int aerolite_s
 Aerolite::Aerolite(const SDL_Point& screen_size):
   center_(generatePosition(screen_size)),
   delta_(generateDelta()),
-  size_(generateSize()),
+  size_(generateSize(60, 200)),
   radius_(static_cast<float>(size_) / 2.f),
   mass_(calculateMass(radius_)),
   wraping_(false) {
@@ -71,25 +71,10 @@ void Aerolite::updateAerolites(float delta_time, const SDL_Point& screen_size, s
             ktp::elasticCollision(aerolites[i]->center_, aerolites[i]->delta_, aerolites[i]->mass_,
                                   aerolites[j]->center_, aerolites[j]->delta_, aerolites[j]->mass_, distance);
             // move by new delta
-            aerolites[i]->center_.x += aerolites[i]->delta_.x * delta_time;
-            aerolites[i]->center_.y += aerolites[i]->delta_.y * delta_time;
-            aerolites[j]->center_.x += aerolites[j]->delta_.x * delta_time;
-            aerolites[j]->center_.y += aerolites[j]->delta_.y * delta_time;
-            if (aerolites[i]->wraping_) {
-              for (auto& clone: aerolites[i]->wraping_clones_) {
-                clone.x += aerolites[i]->delta_.x * delta_time;
-                clone.y += aerolites[i]->delta_.y * delta_time;
-              }
-            }
-            if (aerolites[j]->wraping_) {
-              for (auto& clone: aerolites[j]->wraping_clones_) {
-                clone.x += aerolites[j]->delta_.x * delta_time;
-                clone.y += aerolites[j]->delta_.y * delta_time;
-              }
-            }
+            aerolites[i]->updateDeltas(delta_time);
+            aerolites[j]->updateDeltas(delta_time);
           }
         }
-
         if (aerolites[j]->wraping_) {
           for (auto& clone: aerolites[j]->wraping_clones_) {
             aabb_check = ktp::checkCircleAABBCollision(aerolites[i]->center_, aerolites[i]->radius_, clone, aerolites[j]->radius_);
@@ -99,29 +84,14 @@ void Aerolite::updateAerolites(float delta_time, const SDL_Point& screen_size, s
               if (aero_collision) {
                 ktp::elasticCollision(aerolites[i]->center_, aerolites[i]->delta_, aerolites[i]->mass_,
                                                       clone, aerolites[j]->delta_, aerolites[j]->mass_, distance);
-                aerolites[i]->center_.x += aerolites[i]->delta_.x * delta_time;
-                aerolites[i]->center_.y += aerolites[i]->delta_.y * delta_time;
-                aerolites[j]->center_.x += aerolites[j]->delta_.x * delta_time;
-                aerolites[j]->center_.y += aerolites[j]->delta_.y * delta_time;
-                if (aerolites[i]->wraping_) {
-                  for (auto& clone: aerolites[i]->wraping_clones_) {
-                    clone.x += aerolites[i]->delta_.x * delta_time;
-                    clone.y += aerolites[i]->delta_.y * delta_time;
-                  }
-                }
-                if (aerolites[j]->wraping_) {
-                  for (auto& clone: aerolites[j]->wraping_clones_) {
-                    clone.x += aerolites[j]->delta_.x * delta_time;
-                    clone.y += aerolites[j]->delta_.y * delta_time;
-                  }
-                }
+                aerolites[i]->updateDeltas(delta_time);
+                aerolites[j]->updateDeltas(delta_time);
               }
             }
           }
         }
       }
     }
-    
     if (aerolites[i]->wraping_) {
       for (auto& clone: aerolites[i]->wraping_clones_) {
         for (auto j = i + 1u; j < aerolites.size(); ++j) {
@@ -133,25 +103,10 @@ void Aerolite::updateAerolites(float delta_time, const SDL_Point& screen_size, s
               if (aero_collision) {
                 ktp::elasticCollision(                clone, aerolites[i]->delta_, aerolites[i]->mass_,
                                       aerolites[j]->center_, aerolites[j]->delta_, aerolites[j]->mass_, distance);
-                aerolites[i]->center_.x += aerolites[i]->delta_.x * delta_time;
-                aerolites[i]->center_.y += aerolites[i]->delta_.y * delta_time;
-                aerolites[j]->center_.x += aerolites[j]->delta_.x * delta_time;
-                aerolites[j]->center_.y += aerolites[j]->delta_.y * delta_time;
-                if (aerolites[i]->wraping_) {
-                  for (auto& clone: aerolites[i]->wraping_clones_) {
-                    clone.x += aerolites[i]->delta_.x * delta_time;
-                    clone.y += aerolites[i]->delta_.y * delta_time;
-                  }
-                }
-                if (aerolites[j]->wraping_) {
-                  for (auto& clone: aerolites[j]->wraping_clones_) {
-                    clone.x += aerolites[j]->delta_.x * delta_time;
-                    clone.y += aerolites[j]->delta_.y * delta_time;
-                  }
-                }
+                aerolites[i]->updateDeltas(delta_time);
+                aerolites[j]->updateDeltas(delta_time);
               }
             }
-
             if (aerolites[j]->wraping_) {
               for (auto& t_clone: aerolites[j]->wraping_clones_) {
                 aabb_clones_check = ktp::checkCircleAABBCollision(clone, aerolites[i]->radius_, t_clone, aerolites[j]->radius_);
@@ -161,22 +116,8 @@ void Aerolite::updateAerolites(float delta_time, const SDL_Point& screen_size, s
                   if (aero_collision) {
                     ktp::elasticCollision(  clone, aerolites[i]->delta_, aerolites[i]->mass_,
                                           t_clone, aerolites[j]->delta_, aerolites[j]->mass_, distance);
-                    aerolites[i]->center_.x += aerolites[i]->delta_.x * delta_time;
-                    aerolites[i]->center_.y += aerolites[i]->delta_.y * delta_time;
-                    aerolites[j]->center_.x += aerolites[j]->delta_.x * delta_time;
-                    aerolites[j]->center_.y += aerolites[j]->delta_.y * delta_time;
-                    if (aerolites[i]->wraping_) {
-                      for (auto& clone: aerolites[i]->wraping_clones_) {
-                        clone.x += aerolites[i]->delta_.x * delta_time;
-                        clone.y += aerolites[i]->delta_.y * delta_time;
-                      }
-                    }
-                    if (aerolites[j]->wraping_) {
-                      for (auto& clone: aerolites[j]->wraping_clones_) {
-                        clone.x += aerolites[j]->delta_.x * delta_time;
-                        clone.y += aerolites[j]->delta_.y * delta_time;
-                      }
-                    }
+                    aerolites[i]->updateDeltas(delta_time);
+                    aerolites[j]->updateDeltas(delta_time);
                   }
                 }
               }
@@ -195,20 +136,16 @@ void Aerolite::updateAerolites(float delta_time, const SDL_Point& screen_size, s
 
 /* PRIVATE */
 
-float Aerolite::calculateMass(float radius) {
-  const auto volume = (4.f / 3.f) * M_PI * std::pow(radius, 3);
-  constexpr auto density = 0.0037f;  // in kg/cm3
+float Aerolite::calculateMass(float radius, float density) {
+  const auto volume = static_cast<float>((4.f / 3.f) * M_PI * std::pow(radius, 3));
   return density * volume;
 }
 
-SDL_FPoint Aerolite::generateDelta() {
-  SDL_FPoint delta;
+SDL_FPoint Aerolite::generateDelta(float min, float max) {
   std::mt19937 generator(std::chrono::system_clock::now().time_since_epoch().count());
-  std::uniform_real_distribution<float> distribution_dx(-100.f, 100.f);
-  delta.x = distribution_dx(generator);
-  std::uniform_real_distribution<float> distribution_dy(-100.f, 100.f);
-  delta.y = distribution_dy(generator);
-  return delta;
+  std::uniform_real_distribution<float> distribution_dx(min, max);
+  std::uniform_real_distribution<float> distribution_dy(min, max);
+  return {distribution_dx(generator), distribution_dy(generator)};
 }
 
 SDL_FPoint Aerolite::generatePosition(const SDL_Point& screen_size) {
@@ -264,10 +201,6 @@ void Aerolite::generateCircleShape(const SDL_FPoint& where) {
       error += (tx - diameter);
     }
   }
-}
-
-unsigned int Aerolite::generateSize() {
-  return generateSize(60u, 200u);
 }
 
 unsigned int Aerolite::generateSize(unsigned int min, unsigned int max) {
@@ -329,5 +262,16 @@ void Aerolite::generateWrapingClones(const SDL_Point& screen_size) {
     // clone in sector 2
     wraping_clones_[2].x = center_.x - screen_size.x;
     wraping_clones_[2].y = center_.y;
+  }
+}
+
+void Aerolite::updateDeltas(float delta_time) {
+  center_.x += delta_.x * delta_time;
+  center_.y += delta_.y * delta_time;
+  if (wraping_) {
+    for (auto& clone: wraping_clones_) {
+      clone.x += delta_.x * delta_time;
+      clone.y += delta_.y * delta_time;
+    }
   }
 }
