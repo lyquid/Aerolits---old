@@ -3,10 +3,10 @@
 unsigned int Aerolite::count_ = 0u;
 
 Aerolite::Aerolite(float x, float y, float dx, float dy, unsigned int aerolite_size):
-  center_({x, y}),
-  delta_({dx, dy}),
   size_(aerolite_size),
   radius_(static_cast<float>(size_) / 2.f),
+  center_({x, y}),
+  delta_({dx, dy}),
   mass_(calculateMass(radius_)),
   wraping_(false) {
 
@@ -16,15 +16,17 @@ Aerolite::Aerolite(float x, float y, float dx, float dy, unsigned int aerolite_s
 }
 
 Aerolite::Aerolite(const SDL_Point& screen_size):
-  center_(generatePosition(screen_size)),
-  delta_(generateDelta()),
   size_(generateSize(60, 200)),
   radius_(static_cast<float>(size_) / 2.f),
-  mass_(calculateMass(radius_)),
-  wraping_(false) {
+  center_(generatePosition(screen_size, radius_)),
+  delta_(generateDelta()),
+  mass_(calculateMass(radius_)) {
   
   generateCircleShape(center_);
   wraping_clones_.resize(3);
+  if (wraping_ = ktp::checkCircleOutScreen(center_, radius_, screen_size)) {
+    generateWrapingClones(screen_size);
+  }
   ++count_;
 }
 
@@ -148,12 +150,12 @@ SDL_FPoint Aerolite::generateDelta(float min, float max) {
   return {distribution_dx(generator), distribution_dy(generator)};
 }
 
-SDL_FPoint Aerolite::generatePosition(const SDL_Point& screen_size) {
+SDL_FPoint Aerolite::generatePosition(const SDL_Point& screen_size, float radius) {
   SDL_FPoint where;
   std::mt19937 generator(std::chrono::system_clock::now().time_since_epoch().count());
-  std::uniform_real_distribution<float> distribution_x(0.f, screen_size.x);
+  std::uniform_real_distribution<float> distribution_x(0.f + radius, screen_size.x - radius);
   where.x = distribution_x(generator);
-  std::uniform_real_distribution<float> distribution_y(0.f, screen_size.y);
+  std::uniform_real_distribution<float> distribution_y(0.f + radius, screen_size.y - radius);
   where.y = distribution_y(generator);
   printf("where.x:\t%f\t where.y:\t%f\t\n", where.x, where.y); // without this line g++ shows random aerolites
   return where;

@@ -29,11 +29,11 @@ struct Aerolite {
   static void updateAerolites(float delta_time, const SDL_Point& screen_size, std::vector<std::unique_ptr<Aerolite>>& aerolites);
 
   static unsigned int     count_;
+  unsigned int            size_;
+  float                   radius_;
   SDL_FPoint              center_;
   SDL_FPoint              delta_;
   std::vector<SDL_FPoint> shape_;
-  unsigned int            size_;
-  float                   radius_;
   float                   mass_;
   bool                    wraping_;
   std::vector<SDL_FPoint> wraping_clones_;
@@ -41,7 +41,7 @@ struct Aerolite {
  private:
   static float calculateMass(float radius, float density = 0.0037f);
   static SDL_FPoint generateDelta(float min = -100.f, float max = 100.f);
-  static SDL_FPoint generatePosition(const SDL_Point& screen_size);
+  static SDL_FPoint generatePosition(const SDL_Point& screen_size, float radius);
   void generateSquareShape(const SDL_FPoint& where);
   void generateCircleShape(const SDL_FPoint& where);
   static unsigned int generateSize(unsigned int min = 90u, unsigned int max = 100u);

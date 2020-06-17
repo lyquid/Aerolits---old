@@ -143,11 +143,9 @@ void Game::clean() {
 void Game::generateAerolites(unsigned int number) {
   unsigned int count = 0u;
   unsigned int too_many = 0u;
-  Aerolite* aero;
-  
   do {
     bool bad_place = false;
-    aero = new Aerolite(kSCREEN_SIZE_);
+    auto aero = new Aerolite(kSCREEN_SIZE_);
     for (auto i = 0u; i < aerolites_.size() && !bad_place; ++i) {
       if (ktp::checkCircleAABBCollision(aero->center_, aero->radius_, aerolites_[i]->center_, aerolites_[i]->radius_)) {
         bad_place = true;
