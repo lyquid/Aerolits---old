@@ -50,6 +50,14 @@ static float distanceBetweenPoints(T a_x, T a_y, T b_x, T b_y);
 template <typename T> 
 static float distanceBetweenPoints(const T& a, const T& b);
 
+/** Calculates the distance squared between 2 points.
+ *  @returns the distance squared between the 2 points.
+ **/
+template <typename T>
+static float distanceBetweenPoints2(T a_x, T a_y, T b_x, T b_y);
+template <typename T>
+static float distanceBetweenPoints2(const T& a, const T& b);
+
 /** Calculates an elastic collision between 2 circles.
  *  Updates the deltaV of the circles.
  *  *Warning* Calls sqrtf() if no distance is provided.
@@ -64,7 +72,6 @@ template <typename T, typename U>
 static void elasticCollision(const T& circle_a, T& a_delta, U a_mass, const T& circle_b, T&b_delta, U b_mass, U distance);
 
 /** Checks if a point is inside a circle.
- *  *Warning* Calls sqrtf().
  *  @returns ture if the point is inside the circle.
  **/
 template <typename T> 
@@ -75,8 +82,10 @@ static bool isPointInsideCircle(const T& circle, U radius, const T& point);
 /** Checks if a point is outside the screen an wraps its coordinates
  *  in order to make it appear at the othe side of the screen.
  **/
-template <typename T, typename U> static void wrapCoordinates(T& point_x, T& point_y, U screen_x, U screen_y);
-template <typename T, typename U> static void wrapCoordinates(T& point, const U& screen_size);
+template <typename T, typename U> 
+static void wrapCoordinates(T& point_x, T& point_y, U screen_x, U screen_y);
+template <typename T, typename U> 
+static void wrapCoordinates(T& point, const U& screen_size);
 
 
 /* DEFINITIONS BELOW */
@@ -103,7 +112,6 @@ bool checkCircleAABBCollision(const T& circle_a, U a_radius, const T& circle_b, 
 
 /** Checks if 2 circles are colliding by comparing the sum of 
  *  their radius to the distance between their centers.
- *  *Warning* It uses an sqrtf() call.
  *  @returns true if there is a collision.
  **/
 template <typename T>
@@ -113,7 +121,6 @@ bool checkCirclesCollision(T a_x, T a_y, T a_radius, T b_x, T b_y,  T b_radius) 
 
 /** Checks if 2 circles are colliding by comparing the sum of 
  *  their radius to the distance between their centers.
- *  *Warning* It uses an sqrtf() call.
  *  @returns true if there is a collision.
  **/
 template <typename T, typename U>
@@ -192,6 +199,22 @@ float distanceBetweenPoints(const T& a, const T& b) {
   return distanceBetweenPoints(a.x, a.y, b.x, b.y);
 }
 
+/** Calculates the distance squared between 2 points.
+ *  @returns the distance squared between the 2 points.
+ **/
+template <typename T>
+float distanceBetweenPoints2(T a_x, T a_y, T b_x, T b_y) {
+  return (a_x - b_x) * (a_x - b_x) + (a_y - b_y) * (a_y - b_y);
+}
+
+/** Calculates the distance squared between 2 points.
+ *  @returns the distance squared between the 2 points.
+ **/
+template <typename T>
+float distanceBetweenPoints2(const T& a, const T& b) {
+  return distanceBetweenPoints2(a.x, a.y, b.x, b.y);
+}
+
 /** Calculates an elastic collision between 2 circles.
  *  Updates the deltaV of the circles.
  **/
@@ -240,21 +263,19 @@ void elasticCollision(const T& circle_a, T& a_delta, U a_mass, const T& circle_b
 }
 
 /** Checks if a point is inside a circle.
- *  *Warning* Calls sqrtf().
  *  @returns ture if the point is inside the circle.
  **/
 template <typename T>
 bool isPointInsideCircle(T circle_x, T circle_y, T radius, T point_x, T point_y) {
-  return distanceBetweenPoints(circle_x, circle_y, point_x, point_y) < radius;
+  return distanceBetweenPoints2(circle_x, circle_y, point_x, point_y) < radius * radius;
 }
 
 /** Checks if a point is inside a circle.
- *  *Warning* Calls sqrtf().
  *  @returns ture if the point is inside the circle.
  **/
 template <typename T, typename U> 
 bool isPointInsideCircle(const T& circle, U radius, const T& point) {
-  return distanceBetweenPoints(circle.x, circle.y, point.x, point.y) < radius;
+  return distanceBetweenPoints2(circle.x, circle.y, point.x, point.y) < radius * radius;
 }
 
 /** Checks if a point is outside the screen an wraps its coordinates
