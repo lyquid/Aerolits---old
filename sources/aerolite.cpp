@@ -16,7 +16,7 @@ Aerolite::Aerolite(float x, float y, float dx, float dy, unsigned int aerolite_s
 }
 
 Aerolite::Aerolite(const SDL_Point& screen_size):
-  size_(generateSize(60, 200)),
+  size_(generateSize(180, 320)),
   radius_(static_cast<float>(size_) / 2.f),
   center_(generatePosition(screen_size, radius_)),
   delta_(generateDelta()),
@@ -24,7 +24,7 @@ Aerolite::Aerolite(const SDL_Point& screen_size):
   
   generateCircleShape(center_);
   wraping_clones_.resize(3);
-  if (wraping_ = ktp::checkCircleOutScreen(center_, radius_, screen_size)) {
+  if ((wraping_ = ktp::checkCircleOutScreen(center_, radius_, screen_size))) {
     generateWrapingClones(screen_size);
   }
   ++count_;

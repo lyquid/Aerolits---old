@@ -78,7 +78,7 @@ bool Game::init() {
     return false;
   }
 
-  generateAerolites(6);
+  generateAerolites(4);
   
   return true;
 }
@@ -146,6 +146,12 @@ void Game::generateAerolites(unsigned int number) {
   do {
     bool bad_place = false;
     auto aero = new Aerolite(kSCREEN_SIZE_);
+    if (aero->center_.x > kSCREEN_SIZE_.x * 0.33f && aero->center_.x < kSCREEN_SIZE_.x * 0.66f) {
+      bad_place = true;
+    }
+    if (aero->center_.y > kSCREEN_SIZE_.y * 0.33f && aero->center_.y < kSCREEN_SIZE_.y * 0.66f) {
+      bad_place = true;
+    }
     for (auto i = 0u; i < aerolites_.size() && !bad_place; ++i) {
       if (ktp::checkCircleAABBCollision(aero->center_, aero->radius_, aerolites_[i]->center_, aerolites_[i]->radius_)) {
         bad_place = true;
@@ -157,12 +163,12 @@ void Game::generateAerolites(unsigned int number) {
     } else {
       delete aero;
     }
-    if (++too_many > (kSCREEN_SIZE_.x + kSCREEN_SIZE_.y) / 50u) break;
+    if (++too_many > static_cast<unsigned int>(kSCREEN_SIZE_.x + kSCREEN_SIZE_.y)) break;
   } while (count < number);
 
   // aerolites_.push_back(std::unique_ptr<Aerolite>(new Aerolite(100, 140,  -100, 0, 200)));
   // aerolites_.push_back(std::unique_ptr<Aerolite>(new Aerolite(600, 140,   -10, 0, 200)));
-} 
+}
 
 void Game::renderAerolites() {
   for (const auto& aerolite: aerolites_ ) {
