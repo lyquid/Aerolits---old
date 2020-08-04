@@ -35,6 +35,7 @@ struct Aerolite {
   SDL_FPoint              delta_;
   std::vector<SDL_FPoint> shape_;
   float                   mass_;
+  unsigned int            hit_points_;
   bool                    wraping_;
   std::vector<SDL_FPoint> wraping_clones_;
   
@@ -46,6 +47,7 @@ struct Aerolite {
   void generateCircleShape(const SDL_FPoint& where);
   static unsigned int generateSize(unsigned int min = 90u, unsigned int max = 100u);
   void generateWrapingClones(const SDL_Point& screen_size);
+  void split(std::vector<std::unique_ptr<Aerolite>>& aerolites);
   void updateDeltas(float delta_time);
 };
 

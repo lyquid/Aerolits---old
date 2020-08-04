@@ -8,6 +8,7 @@ Aerolite::Aerolite(float x, float y, float dx, float dy, unsigned int aerolite_s
   center_({x, y}),
   delta_({dx, dy}),
   mass_(calculateMass(radius_)),
+  hit_points_(1u),
   wraping_(false) {
 
   generateCircleShape(center_);
@@ -16,11 +17,12 @@ Aerolite::Aerolite(float x, float y, float dx, float dy, unsigned int aerolite_s
 }
 
 Aerolite::Aerolite(const SDL_Point& screen_size):
-  size_(generateSize(180, 320)),
+  size_(generateSize(180u, 320u)),
   radius_(static_cast<float>(size_) / 2.f),
   center_(generatePosition(screen_size, radius_)),
   delta_(generateDelta()),
-  mass_(calculateMass(radius_)) {
+  mass_(calculateMass(radius_)),
+  hit_points_(1u) {
   
   generateCircleShape(center_);
   wraping_clones_.resize(3);
@@ -31,14 +33,15 @@ Aerolite::Aerolite(const SDL_Point& screen_size):
 }
 
 Aerolite::Aerolite(const Aerolite& object) {
-  center_            = object.center_;
-  delta_             = object.delta_;
-  shape_             = object.shape_;
-  size_              = object.size_;
-  radius_            = object.radius_;
-  mass_              = object.mass_;
-  wraping_           = object.wraping_;
-  wraping_clones_    = object.wraping_clones_;
+  center_         = object.center_;
+  delta_          = object.delta_;
+  shape_          = object.shape_;
+  size_           = object.size_;
+  radius_         = object.radius_;
+  mass_           = object.mass_;
+  hit_points_     = object.hit_points_;
+  wraping_        = object.wraping_;
+  wraping_clones_ = object.wraping_clones_;
   ++count_;
 }
 
@@ -53,11 +56,16 @@ void Aerolite::render(SDL_Renderer& renderer) const {
 void Aerolite::updateAerolites(float delta_time, const SDL_Point& screen_size, std::vector<std::unique_ptr<Aerolite>>& aerolites) {
   // move all
   for (auto i = 0u; i < aerolites.size(); ++i) {
-    aerolites[i]->center_.x += aerolites[i]->delta_.x * delta_time;
-    aerolites[i]->center_.y += aerolites[i]->delta_.y * delta_time;
-    aerolites[i]->wraping_ = ktp::checkCircleOutScreen(aerolites[i]->center_, aerolites[i]->radius_, screen_size);
-    if (aerolites[i]->wraping_) aerolites[i]->generateWrapingClones(screen_size);
-    ktp::wrapCoordinates(aerolites[i]->center_, screen_size);
+    if (aerolites[i]->hit_points_ <= 0u) {
+      if (aerolites[i]->radius_ > 30.f) aerolites[i]->split(aerolites); // magic number :(
+      aerolites.erase(aerolites.begin() + i);
+    } else {
+      aerolites[i]->center_.x += aerolites[i]->delta_.x * delta_time;
+      aerolites[i]->center_.y += aerolites[i]->delta_.y * delta_time;
+      aerolites[i]->wraping_ = ktp::checkCircleOutScreen(aerolites[i]->center_, aerolites[i]->radius_, screen_size);
+      if (aerolites[i]->wraping_) aerolites[i]->generateWrapingClones(screen_size);
+      ktp::wrapCoordinates(aerolites[i]->center_, screen_size);
+    }
   }
 
   for (auto i = 0u; i < aerolites.size(); ++i) {
@@ -265,6 +273,15 @@ void Aerolite::generateWrapingClones(const SDL_Point& screen_size) {
     wraping_clones_[2].x = center_.x - screen_size.x;
     wraping_clones_[2].y = center_.y;
   }
+}
+
+void Aerolite::split(std::vector<std::unique_ptr<Aerolite>>& aerolites) {
+  auto new_delta = generateDelta();
+  Aerolite* part1 = new Aerolite(center_.x - radius_ / 2.f, center_.y, new_delta.x, new_delta.y, radius_ - 1u);
+  Aerolite* part2 = new Aerolite(center_.x + radius_ / 2.f, center_.y, -new_delta.x, -new_delta.y, radius_ - 1u);
+  
+  aerolites.push_back(std::unique_ptr<Aerolite>(part1));
+  aerolites.push_back(std::unique_ptr<Aerolite>(part2));
 }
 
 void Aerolite::updateDeltas(float delta_time) {

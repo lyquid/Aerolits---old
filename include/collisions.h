@@ -72,7 +72,7 @@ template <typename T, typename U>
 static void elasticCollision(const T& circle_a, T& a_delta, U a_mass, const T& circle_b, T&b_delta, U b_mass, U distance);
 
 /** Checks if a point is inside a circle.
- *  @returns ture if the point is inside the circle.
+ *  @returns true if the point is inside the circle.
  **/
 template <typename T> 
 static bool isPointInsideCircle(T circle_x, T circle_y, T radius, T point_x, T point_y);
@@ -263,7 +263,7 @@ void elasticCollision(const T& circle_a, T& a_delta, U a_mass, const T& circle_b
 }
 
 /** Checks if a point is inside a circle.
- *  @returns ture if the point is inside the circle.
+ *  @returns true if the point is inside the circle.
  **/
 template <typename T>
 bool isPointInsideCircle(T circle_x, T circle_y, T radius, T point_x, T point_y) {
@@ -271,7 +271,7 @@ bool isPointInsideCircle(T circle_x, T circle_y, T radius, T point_x, T point_y)
 }
 
 /** Checks if a point is inside a circle.
- *  @returns ture if the point is inside the circle.
+ *  @returns true if the point is inside the circle.
  **/
 template <typename T, typename U> 
 bool isPointInsideCircle(const T& circle, U radius, const T& point) {
